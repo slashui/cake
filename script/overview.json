@@ -1,0 +1,283 @@
+{
+    "courseInfo": {
+      "title": "和果子制作课程",
+      "titleEn": "Wagashi Making Course",
+      "description": "传统日式和果子制作技艺全面培训",
+      "totalStages": 3,
+      "courseType": "hands-on workshop",
+      "targetAudience": "初学者到进阶学员"
+    },
+  
+    "courseOutline": {
+      "stage1": {
+        "stageName": "和果子基础入门",
+        "stageNameEn": "Wagashi Fundamentals",
+        "duration": "建议4-6课时",
+        "objective": "掌握和果子基础知识和简单制作技法",
+        "learningGoals": [
+          "理解练切类和果子的美学特点与应用场景",
+          "掌握基础原料知识和工具使用",
+          "学会基础配方和工艺流程",
+          "能够制作简单花型练切作品"
+        ],
+        "modules": [
+          {
+            "moduleId": "1.1",
+            "title": "课程导入",
+            "titleEn": "Course Introduction",
+            "content": [
+              "练切类和果子的美学特点与适用场景",
+              "和果子的历史文化背景",
+              "现代和果子的发展趋势"
+            ],
+            "duration": "30分钟"
+          },
+          {
+            "moduleId": "1.2", 
+            "title": "原料知识",
+            "titleEn": "Ingredient Knowledge",
+            "content": [
+              "主要原料：白豆沙、红豆沙、糯米粉和寒天粉等",
+              "原料选择与保存技巧",
+              "原料质量判断标准",
+              "替代原料介绍"
+            ],
+            "duration": "45分钟"
+          },
+          {
+            "moduleId": "1.3",
+            "title": "基础工具与环境",
+            "titleEn": "Basic Tools & Environment",
+            "content": [
+              "必需工具清单",
+              "工具使用方法与保养",
+              "制作环境要求",
+              "卫生安全注意事项"
+            ],
+            "duration": "30分钟"
+          },
+          {
+            "moduleId": "1.4",
+            "title": "基础配方与工艺",
+            "titleEn": "Basic Recipes & Techniques",
+            "content": [
+              "练切皮的制作流程（入门版）",
+              "豆沙馅的调制与保湿",
+              "基础手法训练",
+              "温度和湿度控制"
+            ],
+            "duration": "90分钟",
+            "practiceTime": "60分钟"
+          },
+          {
+            "moduleId": "1.5",
+            "title": "初学者作品",
+            "titleEn": "Beginner Projects",
+            "content": [
+              "简单花型练切（如樱花、梅花）",
+              "基础造型技法",
+              "初学者常见错误与修正",
+              "作品评估与改进建议"
+            ],
+            "duration": "120分钟",
+            "projects": ["樱花练切", "梅花练切", "基础圆形练切"]
+          }
+        ]
+      },
+  
+      "stage2": {
+        "stageName": "进阶技法与造型",
+        "stageNameEn": "Advanced Techniques & Shaping",
+        "duration": "建议6-8课时",
+        "objective": "掌握稳定皮配方、精细造型技法与色彩过渡，能制作更具观赏性的作品",
+        "prerequisites": ["完成阶段一学习", "熟练掌握基础手法"],
+        "learningGoals": [
+          "掌握稳定的练切皮配方和保湿技术",
+          "学会色彩调配和渐变技巧",
+          "掌握进阶造型技法",
+          "能够制作立体花型作品"
+        ],
+        "modules": [
+          {
+            "moduleId": "2.1",
+            "title": "练切皮稳定版与保湿公式",
+            "titleEn": "Stable Nerikiri Dough & Moisture Formula",
+            "content": [
+              "稳定配方的科学原理",
+              "皮与馅的协调比例",
+              "保湿技术详解",
+              "不同季节的配方调整"
+            ],
+            "duration": "60分钟"
+          },
+          {
+            "moduleId": "2.2",
+            "title": "色彩与渐变技巧", 
+            "titleEn": "Color & Gradient Techniques",
+            "content": [
+              "调色原则与色彩搭配",
+              "天然色素的使用",
+              "手揉渐变技法",
+              "色彩层次表现"
+            ],
+            "duration": "90分钟",
+            "practiceTime": "60分钟"
+          },
+          {
+            "moduleId": "2.3",
+            "title": "造型技法进阶",
+            "titleEn": "Advanced Shaping Techniques",
+            "content": [
+              "多层练切制作技法",
+              "立体花型（牡丹、山茶、樱花）",
+              "季节主题造型设计",
+              "复杂结构的组装技巧"
+            ],
+            "duration": "150分钟",
+            "projects": ["立体牡丹", "山茶花", "季节限定造型"]
+          },
+          {
+            "moduleId": "2.4",
+            "title": "细节与质感表现",
+            "titleEn": "Details & Texture Expression",
+            "content": [
+              "刀纹控制技巧",
+              "花瓣层次与边缘处理",
+              "表面光泽调节",
+              "质感对比的运用"
+            ],
+            "duration": "90分钟",
+            "practiceTime": "120分钟"
+          }
+        ]
+      },
+  
+      "stage3": {
+        "stageName": "综合创作与作品呈现",
+        "stageNameEn": "Creative Composition & Presentation",
+        "duration": "建议8-10课时",
+        "objective": "能够独立创作主题系列果子，并在商业或展示中呈现",
+        "prerequisites": ["完成前两阶段学习", "能独立制作进阶作品"],
+        "learningGoals": [
+          "掌握主题创作的思路和方法",
+          "学会作品组合与美学呈现",
+          "了解商业化制作要求",
+          "具备独立创作能力"
+        ],
+        "modules": [
+          {
+            "moduleId": "3.1",
+            "title": "主题创作思路",
+            "titleEn": "Thematic Creation Concepts",
+            "content": [
+              "季节节气主题设计",
+              "节庆限定（中秋、春节、新年）",
+              "现代创意与传统结合",
+              "个人风格的培养"
+            ],
+            "duration": "90分钟"
+          },
+          {
+            "moduleId": "3.2",
+            "title": "成品组合与摆盘",
+            "titleEn": "Product Combination & Plating",
+            "content": [
+              "组合搭配原则",
+              "和果子与茶的搭配学",
+              "传统摆盘美学",
+              "现代呈现方式"
+            ],
+            "duration": "120分钟",
+            "practiceTime": "90分钟"
+          },
+          {
+            "moduleId": "3.3",
+            "title": "作品拍摄与展示",
+            "titleEn": "Photography & Display",
+            "content": [
+              "光线与背景布置",
+              "色彩呼应与氛围营造",
+              "拍摄角度与构图",
+              "社交媒体展示技巧"
+            ],
+            "duration": "90分钟",
+            "practiceTime": "60分钟"
+          },
+          {
+            "moduleId": "3.4",
+            "title": "保湿与运输",
+            "titleEn": "Preservation & Transportation",
+            "content": [
+              "课堂成品的短期保存",
+              "商业外卖与礼盒处理",
+              "长途运输解决方案",
+              "保质期管理"
+            ],
+            "duration": "60分钟"
+          }
+        ],
+        "finalProject": {
+          "title": "主题系列创作",
+          "description": "学员需独立设计并制作一套主题和果子作品",
+          "requirements": [
+            "至少包含4-6个不同造型",
+            "体现统一主题概念",
+            "展示所学全部技法",
+            "完成作品拍摄与说明"
+          ],
+          "duration": "180分钟",
+          "evaluation": "作品完成度、技法运用、创意表现、整体呈现"
+        }
+      }
+    },
+  
+    "assessmentCriteria": {
+      "technicalSkills": {
+        "weight": "40%",
+        "items": ["手法熟练度", "配方掌握", "工艺精度", "问题解决能力"]
+      },
+      "aestheticSense": {
+        "weight": "35%", 
+        "items": ["造型美感", "色彩搭配", "比例协调", "细节处理"]
+      },
+      "creativity": {
+        "weight": "25%",
+        "items": ["创新思维", "主题表达", "个人风格", "文化理解"]
+      }
+    },
+  
+    "courseResources": {
+      "materials": [
+        "基础原料套装",
+        "专业工具包",
+        "配方手册",
+        "技法视频资料"
+      ],
+      "references": [
+        "传统和果子图谱",
+        "季节主题设计案例",
+        "现代创意作品集",
+        "茶道文化背景资料"
+      ]
+    },
+  
+    "certification": {
+      "levels": [
+        {
+          "name": "和果子制作基础认证",
+          "requirement": "完成阶段一并通过考核",
+          "skills": "基础制作技能"
+        },
+        {
+          "name": "和果子制作进阶认证", 
+          "requirement": "完成阶段二并通过考核",
+          "skills": "进阶技法和造型能力"
+        },
+        {
+          "name": "和果子制作师认证",
+          "requirement": "完成全部阶段并通过综合考核",
+          "skills": "独立创作和商业制作能力"
+        }
+      ]
+    }
+  }

@@ -1,0 +1,183 @@
+{
+    "designStyle": {
+      "name": "Japanese Tea House Aesthetic",
+      "description": "优雅的日式茶点风格，融合传统与现代元素"
+    },
+    
+    "colorPalette": {
+      "primary": {
+        "background": "#F5F0F0",
+        "description": "温暖的米粉色背景，营造温馨氛围"
+      },
+      "secondary": {
+        "pink": "#E6C2C2",
+        "mintGreen": "#C8D4C0", 
+        "cream": "#F8F5F0",
+        "description": "柔和的粉色系和抹茶绿色调"
+      },
+      "accent": {
+        "matcha": "#7BA05B",
+        "sakuraPink": "#F4C2C2", 
+        "goldAccent": "#D4AF37",
+        "description": "抹茶绿、樱花粉和金色点缀"
+      },
+      "neutral": {
+        "darkGray": "#4A4A4A",
+        "lightGray": "#8A8A8A",
+        "white": "#FFFFFF",
+        "description": "深灰色文字，浅灰色辅助信息"
+      }
+    },
+  
+    "typography": {
+      "primary": {
+        "fontFamily": "Noto Sans CJK, 思源黑体",
+        "style": "优雅的中日文字体"
+      },
+      "hierarchy": {
+        "mainTitle": {
+          "fontSize": "28-36px",
+          "fontWeight": "bold",
+          "color": "#4A4A4A",
+          "orientation": "vertical",
+          "description": "主标题使用竖排布局"
+        },
+        "subtitle": {
+          "fontSize": "14-16px", 
+          "fontWeight": "normal",
+          "color": "#6A6A6A"
+        },
+        "body": {
+          "fontSize": "12-14px",
+          "fontWeight": "light", 
+          "color": "#8A8A8A"
+        },
+        "price": {
+          "fontSize": "18-24px",
+          "fontWeight": "bold",
+          "color": "#4A4A4A"
+        }
+      }
+    },
+  
+    "layout": {
+      "structure": "asymmetric_grid",
+      "principles": {
+        "whitespace": "大量留白，营造宁静感",
+        "balance": "不对称平衡，突出重点元素",
+        "alignment": "左对齐为主，竖排文字右对齐"
+      },
+      "grid": {
+        "type": "flexible_masonry",
+        "spacing": "40-60px",
+        "margins": "60-80px"
+      },
+      "composition": {
+        "hero": {
+          "position": "center_right",
+          "elements": ["主图片", "竖排标题", "装饰元素"]
+        },
+        "productGrid": {
+          "layout": "2x3_or_3x2",
+          "itemSpacing": "30px",
+          "aspectRatio": "square_or_portrait"
+        }
+      }
+    },
+  
+    "visualElements": {
+      "photography": {
+        "style": "clean_minimalist",
+        "lighting": "soft_natural",
+        "background": "neutral_solid",
+        "composition": "centered_with_props",
+        "props": ["樱花花瓣", "天然材质器皿", "竹制餐具"]
+      },
+      "decorativeElements": {
+        "sakuraPetals": {
+          "usage": "scattered_accent",
+          "color": "#F4C2C2",
+          "size": "small_medium",
+          "opacity": "70-85%"
+        },
+        "geometricShapes": {
+          "circles": "subtle_background_elements",
+          "lines": "minimal_dividers"
+        }
+      },
+      "textTreatment": {
+        "orientation": "vertical_for_titles",
+        "alignment": "right_aligned_vertical",
+        "spacing": "generous_line_height"
+      }
+    },
+  
+    "materialDesign": {
+      "textures": {
+        "ceramic": "smooth_matte_finish",
+        "bamboo": "natural_grain_texture", 
+        "fabric": "soft_linen_texture"
+      },
+      "surfaces": {
+        "plates": "dark_slate_or_light_ceramic",
+        "background": "soft_fabric_texture",
+        "cards": "subtle_paper_texture"
+      }
+    },
+  
+    "interactionDesign": {
+      "hover": {
+        "productCards": "subtle_shadow_lift",
+        "images": "gentle_scale_105%",
+        "buttons": "color_fade_transition"
+      },
+      "transitions": {
+        "duration": "300-500ms",
+        "easing": "ease_in_out",
+        "style": "smooth_organic"
+      }
+    },
+  
+    "contentStrategy": {
+      "pricing": {
+        "display": "prominent_clean_typography",
+        "currency": "dollar_or_yen_symbols",
+        "alignment": "right_aligned"
+      },
+      "descriptions": {
+        "style": "poetic_concise",
+        "language": "elegant_seasonal_references",
+        "length": "short_evocative_phrases"
+      },
+      "seasonality": {
+        "spring": "sakura_themes",
+        "summer": "fresh_mint_themes", 
+        "autumn": "warm_earth_tones",
+        "winter": "cozy_warm_elements"
+      }
+    },
+  
+    "layoutPatterns": {
+      "heroSection": {
+        "imagePosition": "left_or_center",
+        "titlePosition": "right_vertical",
+        "decorativeElements": "scattered_organic"
+      },
+      "productShowcase": {
+        "arrangement": "asymmetric_grid",
+        "imageSize": "varied_but_balanced",
+        "textPlacement": "below_or_beside"
+      },
+      "menuLayout": {
+        "categories": "subtle_dividers",
+        "items": "clean_rows_with_dots",
+        "prices": "right_aligned_bold"
+      }
+    },
+  
+    "brandPersonality": {
+      "keywords": ["优雅", "宁静", "精致", "传统", "季节性", "手工"],
+      "mood": "peaceful_refined_artisanal",
+      "target": "追求品质生活的都市人群"
+    }
+  }
