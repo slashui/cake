@@ -62,24 +62,62 @@ export default function Login() {
 
     return (
         <>
-            <main className="w-full h-screen flex flex-col bg-gradient-to-br from-[#d6cbff] to-[#b8a5ff] items-center justify-center sm:px-4">
-                <div className="w-full space-y-6 sm:max-w-md">
-                    <div className="text-center">
-                        <div className="mt-5 space-y-2">
-                            <h3 className="text-gray-800 text-2xl font-bold sm:text-3xl">{t("One")}</h3>
-                           
+            {/* Sakura petals decorative background */}
+            <div className="fixed inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute top-10 left-20 w-4 h-4 bg-[#F4C2C2]/80 rounded-full opacity-70 animate-pulse"></div>
+                <div className="absolute top-40 right-32 w-3 h-3 bg-[#F4C2C2]/60 rounded-full opacity-85"></div>
+                <div className="absolute bottom-60 left-16 w-2 h-2 bg-[#E6C2C2]/70 rounded-full opacity-75"></div>
+                <div className="absolute top-80 left-1/3 w-3 h-3 bg-[#F4C2C2]/50 rounded-full opacity-60"></div>
+                <div className="absolute bottom-40 right-20 w-4 h-4 bg-[#E6C2C2]/80 rounded-full opacity-70"></div>
+            </div>
+
+            <main className="w-full min-h-screen flex items-center justify-center" style={{backgroundColor: '#F5F0F0'}}>
+                <div className="w-full max-w-6xl mx-auto px-8 py-12 flex items-center justify-between">
+                    
+                    {/* Left side - Decorative vertical title */}
+                    <div className="hidden lg:flex flex-col items-end space-y-8 pr-16">
+                        <div className="writing-vertical-rl text-right">
+                            <h1 className="text-4xl font-bold text-[#4A4A4A] leading-relaxed tracking-wide" 
+                                style={{fontFamily: 'Noto Sans CJK, 思源黑体, sans-serif'}}>
+                                和
+                                <br />
+                                果
+                                <br />
+                                子
+                                <br />
+                                学
+                                <br />
+                                院
+                            </h1>
+                        </div>
+                        
+                        {/* Decorative elements */}
+                        <div className="flex flex-col items-center space-y-4">
+                            <div className="w-px h-16 bg-[#C8D4C0]"></div>
+                            <div className="w-2 h-2 bg-[#7BA05B] rounded-full"></div>
+                            <div className="w-px h-16 bg-[#E6C2C2]"></div>
                         </div>
                     </div>
-                    <div className="mx-4 bg-white/90 backdrop-blur-sm shadow-xl rounded-2xl p-8">
-                        
-                       
-                        <form
-                            onSubmit={loginUser}
-                            className=""
-                        >
-                            <div>
-                                <div>
-                                    <label className="text-gray-700 font-medium block mb-2">
+
+                    {/* Right side - Login form */}
+                    <div className="w-full max-w-md lg:max-w-lg">
+                        <div className="bg-[#F8F5F0]/90 backdrop-blur-sm rounded-3xl p-10 shadow-lg border border-[#E6C2C2]/30">
+                            
+                            {/* Header */}
+                            <div className="text-center mb-8">
+                                <h3 className="text-[#4A4A4A] text-2xl font-bold mb-2" 
+                                    style={{fontFamily: 'Noto Sans CJK, 思源黑体, sans-serif'}}>
+                                    {t("One")}
+                                </h3>
+                                <div className="w-12 h-px bg-[#7BA05B] mx-auto"></div>
+                            </div>
+                           
+                            <form onSubmit={loginUser} className="space-y-6">
+                                
+                                {/* Email field */}
+                                <div className="space-y-2">
+                                    <label className="text-[#4A4A4A] font-medium text-sm block" 
+                                           style={{fontFamily: 'Noto Sans CJK, 思源黑体, sans-serif'}}>
                                         {t("Five")}
                                     </label>
                                     <input
@@ -90,12 +128,19 @@ export default function Login() {
                                         value={data.email}
                                         onChange={e => setData({ ...data, email: e.target.value })}
                                         required
-                                        className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#845eee]/50 focus:border-[#845eee] outline-none transition-all"
+                                        className="w-full px-4 py-4 rounded-xl border border-[#E6C2C2] bg-white/80 
+                                                 focus:ring-2 focus:ring-[#7BA05B]/30 focus:border-[#7BA05B] 
+                                                 outline-none transition-all duration-300 text-[#4A4A4A]
+                                                 placeholder:text-[#8A8A8A]"
                                         placeholder={t("Seven")}
+                                        style={{fontFamily: 'Noto Sans CJK, 思源黑体, sans-serif'}}
                                     />
                                 </div>
-                                <div>
-                                    <label className="text-gray-700 font-medium block mt-4 mb-2">
+
+                                {/* Password field */}
+                                <div className="space-y-2">
+                                    <label className="text-[#4A4A4A] font-medium text-sm block"
+                                           style={{fontFamily: 'Noto Sans CJK, 思源黑体, sans-serif'}}>
                                         {t("Six")}
                                     </label>
                                     <input
@@ -106,21 +151,48 @@ export default function Login() {
                                         required
                                         value={data.password}
                                         onChange={e => setData({ ...data, password: e.target.value })}
-                                        className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#845eee]/50 focus:border-[#845eee] outline-none transition-all"
+                                        className="w-full px-4 py-4 rounded-xl border border-[#E6C2C2] bg-white/80 
+                                                 focus:ring-2 focus:ring-[#7BA05B]/30 focus:border-[#7BA05B] 
+                                                 outline-none transition-all duration-300 text-[#4A4A4A]
+                                                 placeholder:text-[#8A8A8A]"
                                         placeholder={t("Eight")}
+                                        style={{fontFamily: 'Noto Sans CJK, 思源黑体, sans-serif'}}
                                     />
                                 </div>
+
+                                {/* Submit button */}
+                                <button
+                                    type="submit"
+                                    className="w-full mt-8 py-4 px-8 text-white font-medium rounded-xl 
+                                             transition-all duration-300 hover:shadow-lg hover:scale-[1.02]
+                                             active:scale-[0.98]"
+                                    style={{
+                                        backgroundColor: '#7BA05B',
+                                        fontFamily: 'Noto Sans CJK, 思源黑体, sans-serif'
+                                    }}
+                                    onMouseEnter={(e) => e.target.style.backgroundColor = '#6A8F4F'}
+                                    onMouseLeave={(e) => e.target.style.backgroundColor = '#7BA05B'}
+                                >
+                                    {t("Nine")}
+                                </button>
+                            </form>
+
+                            {/* Decorative bottom element */}
+                            <div className="flex justify-center mt-8 space-x-2">
+                                <div className="w-2 h-2 bg-[#F4C2C2] rounded-full opacity-70"></div>
+                                <div className="w-2 h-2 bg-[#C8D4C0] rounded-full opacity-70"></div>
+                                <div className="w-2 h-2 bg-[#D4AF37] rounded-full opacity-70"></div>
                             </div>
-                            <button
-                                type="submit"
-                                className="w-full mt-6 bg-[#845eee] py-3 px-6 text-white font-medium hover:bg-[#845eee]/90 rounded-lg transition-colors duration-200"
-                                style={{ backgroundColor: '#845eee' }}
-                            >
-                                {t("Nine")}
-                            </button>
-                        </form>
+                        </div>
+
+                        {/* Mobile title for small screens */}
+                        <div className="lg:hidden text-center mt-6">
+                            <h1 className="text-2xl font-bold text-[#4A4A4A]" 
+                                style={{fontFamily: 'Noto Sans CJK, 思源黑体, sans-serif'}}>
+                                和果子学院
+                            </h1>
+                        </div>
                     </div>
-                    
                 </div>
             </main>
 
