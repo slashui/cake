@@ -180,10 +180,14 @@ const courseStructure = await fetch('/api/courses/structure').then(res => res.js
 // 获取特定章节的课时
 const lessons = await fetch('/api/lessons?chapterId=xxx').then(res => res.json())
 
-// 检查用户权限
+// 检查用户权限 - 新的平行权限系统
 function can_access_lesson(lesson, user_role) {
-  const role_hierarchy = { FREE: 0, PRIME: 1, VIP: 2 }
-  return role_hierarchy[user_role] >= role_hierarchy[lesson.requiredRole]
+  // FREE内容所有用户都可以访问
+  if (lesson.requiredRole === 'FREE') {
+    return true;
+  }
+  // VIP和PRIME用户各自只能访问对应的内容，不再有包含关系
+  return user_role === lesson.requiredRole;
 }
 ```
 

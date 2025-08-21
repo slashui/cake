@@ -39,7 +39,7 @@ export default function AdminDashboard() {
   const loadCourseData = async () => {
     try {
       console.log('Fetching course data from /course.json')
-      const response = await fetch('/course.json', {
+      const response = await fetch('/course.json?t=' + Date.now(), {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -249,6 +249,7 @@ export default function AdminDashboard() {
 
   const saveCourseData = async () => {
     try {
+      console.log('Saving course data:', courseData)
       const response = await fetch('/api/update-course', {
         method: 'POST',
         headers: {
@@ -263,7 +264,7 @@ export default function AdminDashboard() {
 
       const result = await response.json()
       alert('课程数据已保存到 course.json！')
-      console.log('Course data saved:', courseData)
+      console.log('Course data saved successfully:', result)
     } catch (error) {
       console.error('Save error:', error)
       alert('保存失败，请重试')
@@ -615,26 +616,45 @@ export default function AdminDashboard() {
                     />
                   </div>
                   
+
+                  
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      章节状态
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      章节访问权限
                     </label>
-                    <select
-                      value={courseData.chapters.find(c => c.id === selectedItem.chapterId)?.status || 'pending'}
-                      onChange={(e) => {
-                        const updatedData = { ...courseData }
-                        const chapter = updatedData.chapters.find(c => c.id === selectedItem.chapterId)
-                        if (chapter) {
-                          chapter.status = e.target.value
-                          setCourseData(updatedData)
-                        }
-                      }}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="pending">待完成</option>
-                      <option value="completed">已完成</option>
-                      <option value="draft">草稿</option>
-                    </select>
+                    <div className="space-y-3">
+                      {['FREE', 'PRIME', 'VIP'].map((role) => (
+                        <label key={role} className="flex items-center">
+                          <input
+                            type="radio"
+                            name="chapterRole"
+                            value={role}
+                            checked={courseData.chapters.find(c => c.id === selectedItem.chapterId)?.requiredRole?.toUpperCase() === role}
+                            onChange={(e) => {
+                              console.log('Changing chapter requiredRole to:', e.target.value)
+                              const updatedData = { ...courseData }
+                              const chapter = updatedData.chapters.find(c => c.id === selectedItem.chapterId)
+                              if (chapter) {
+                                chapter.requiredRole = e.target.value
+                                console.log('Updated chapter:', chapter)
+                                setCourseData(updatedData)
+                              }
+                            }}
+                            className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                          />
+                          <span className={`ml-3 text-sm font-medium ${
+                            role === 'VIP' ? 'text-orange-600' :
+                            role === 'PRIME' ? 'text-purple-600' :
+                            'text-gray-600'
+                          }`}>
+                            {role === 'FREE' ? '免费用户' : role + '会员'}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                    <p className="text-sm text-gray-500 mt-2">
+                      设置访问此章节所需的用户角色等级
+                    </p>
                   </div>
                 </div>
               </>
