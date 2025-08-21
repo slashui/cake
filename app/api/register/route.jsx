@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server'
 
 export async function POST(request){
     const body = await request.json();
-    const { name, email, password, role } = body;
+    const { name, email, password, role, user_level } = body;
 
     if(!name || !email || !password) {
         return new NextResponse('Missing Fields', { status: 400 })
@@ -20,10 +20,10 @@ export async function POST(request){
         throw new Error('Email already exists')
     }
 
-    // 如果没有指定角色，检查订单表
-    let userRole = role || 'FREE';
+    // 如果没有指定角色，检查用户等级或订单表
+    let userRole = role || user_level || 'FREE';
     
-    if (!role) {
+    if (!role && !user_level) {
         const order = await prisma.orderlist.findFirst({
             where: { email },
             orderBy: { addtime: 'desc' },

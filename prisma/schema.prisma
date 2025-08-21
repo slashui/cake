@@ -33,6 +33,18 @@ enum UserRole {
   VIP
 }
 
+enum RequiredRole {
+  FREE
+  PRIME
+  VIP
+}
+
+enum ChapterStatus {
+  DRAFT
+  COMPLETED
+  PUBLISHED
+}
+
 model Account {
   id                String  @id @default(cuid())
   userId            String
@@ -69,4 +81,49 @@ model orderlist {
     productname             String? 
     amount                  Float? 
     addtime                 String?
+}
+
+model Course {
+    id          String    @id @default(cuid())
+    title       String
+    description String?
+    createdAt   DateTime  @default(now())
+    updatedAt   DateTime  @updatedAt
+    chapters    Chapter[]
+}
+
+model Chapter {
+    id             String        @id @default(cuid())
+    chapterNumber  String        // e.g., "chapter1"
+    title          String
+    description    String?
+    status         ChapterStatus @default(DRAFT)
+    requiredRole   RequiredRole  @default(FREE)
+    order          Int
+    courseId       String
+    course         Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
+    lessons        Lesson[]
+    createdAt      DateTime      @default(now())
+    updatedAt      DateTime      @updatedAt
+
+    @@unique([courseId, chapterNumber])
+    @@unique([courseId, order])
+}
+
+model Lesson {
+    id           String       @id @default(cuid())
+    title        String
+    duration     String?
+    url          String
+    previewUrl   String?
+    isPreview    Boolean      @default(false)
+    requiredRole RequiredRole @default(FREE)
+    videoUrl     String?
+    order        Int
+    chapterId    String
+    chapter      Chapter      @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+    createdAt    DateTime     @default(now())
+    updatedAt    DateTime     @updatedAt
+
+    @@unique([chapterId, order])
 }

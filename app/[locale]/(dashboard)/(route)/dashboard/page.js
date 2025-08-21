@@ -70,7 +70,7 @@ export default function Home({ params }) {
                 <p className="text-sm opacity-90 mb-4">
                   学习传统练切技法，掌握基础造型与配色技巧，制作精美的樱花主题和果子。
                 </p>
-                <a href="/cn/aideveloper/chapter2/lesson1" 
+                <a href="/cn/course/chapter2/lesson1" 
                    className="inline-block px-4 py-2 bg-white rounded-full font-medium hover:opacity-90 transition-opacity" 
                    style={{ color: "#7BA05B" }}>
                   开始学习

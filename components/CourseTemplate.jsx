@@ -2,7 +2,7 @@ import React from 'react'
 import VideoPlayer from '@/components/VideoPlayer'
 import CourseHeader from '@/components/CourseHeader'
 import { MDXRemote } from 'next-mdx-remote'
-import AliPlayer from '@/components/AliPlayer'
+import CloudflarePlayer from '@/components/CloudflarePlayer'
 
 const components = {
   h1: (props) => <h1 className="text-3xl font-bold my-4" {...props} />,
@@ -20,16 +20,23 @@ const CourseTemplate = ({
   chapterId, 
   lessonUrl, 
   content,  // markdown内容
-  frontmatter // markdown的元数据
+  frontmatter, // markdown的元数据
+  currentLesson // 从course.json获取的课程信息，包含videoUrl, streamId, thumbnail
 }) => {
+  // 调试信息
+  console.log('CourseTemplate received currentLesson:', currentLesson);
   return (
-    <div className="max-w-5xl mx-auto py-8 px-4">
+    <div className="w-[85%] mx-auto py-8 px-4">
        <CourseHeader chapterId={chapterId} lessonUrl={lessonUrl} />
 
 <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
   <div className="aspect-w-16 aspect-h-9 mb-8">
     <div className="w-full bg-gray-100 rounded-lg">
-    <AliPlayer vid={frontmatter.vid} />
+      <CloudflarePlayer 
+        videoUrl={currentLesson?.videoUrl} 
+        streamId={currentLesson?.streamId}
+        thumbnail={currentLesson?.thumbnail}
+      />
     </div>
   </div>
 

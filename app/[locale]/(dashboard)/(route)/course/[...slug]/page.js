@@ -3,7 +3,7 @@
 import CourseTemplate from '@/components/CourseTemplate'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState, useCallback } from 'react'
-import courseData from '@/libs/course.json'
+import courseData from '@/public/course.json'
 import { useSession } from 'next-auth/react'
 
 export default function CoursePage({ params }) {
@@ -12,8 +12,8 @@ export default function CoursePage({ params }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const router = useRouter()
-  const slug = params.slug.join('/')
-  const [chapterId] = params.slug
+  const slug = Array.isArray(params.slug) ? params.slug.join('/') : params.slug
+  const chapterId = Array.isArray(params.slug) ? params.slug[0] : params.slug.split('/')[0]
   const locale = params.locale || 'cn'
 
   console.log('Params:', params)
@@ -74,57 +74,52 @@ export default function CoursePage({ params }) {
     return null
   }
   
-  // 找到当前课程
+  // 找到当前课程 - 简化匹配逻辑
   let currentLesson = null
-  let lessonList = []
-
-  console.log('DEBUG: demo页面 - 当前slug:', slug)
-  console.log('DEBUG: demo页面 - 当前locale:', locale)
-
-  if (chapter.sections) {
-    chapter.sections.forEach(section => {
-      section.lessons.forEach(lesson => {
-        console.log('DEBUG: demo页面 lesson.url:', lesson.url)
-        // 更简化的匹配逻辑
-        const lessonPath = lesson.url.replace(/^\/[^\/]+\//, '') // 移除开头的语言前缀，如 /cn/
-        const currentPath = slug // slug 已经是字符串了
-        
-        console.log('DEBUG: demo页面 lessonPath:', lessonPath, 'currentPath:', currentPath)
-        
-        if (lessonPath === currentPath || lesson.url.endsWith(currentPath)) {
-          currentLesson = lesson
-          console.log('DEBUG: demo页面匹配成功!')
-        }
-        lessonList.push(lesson)
-      })
-    })
-  } else {
-    chapter.lessons.forEach(lesson => {
-      console.log('DEBUG: demo页面 lesson.url:', lesson.url)
-      // 更简化的匹配逻辑
-      const lessonPath = lesson.url.replace(/^\/[^\/]+\//, '') // 移除开头的语言前缀，如 /cn/
-      const currentPath = slug // slug 已经是字符串了
+  console.log('DEBUG: 当前slug:', slug)
+  console.log('DEBUG: 当前locale:', locale)
+  
+  if (chapter.lessons) {
+    chapter.lessons.forEach((lesson, index) => {
+      console.log('DEBUG: lesson.url:', lesson.url)
       
-      console.log('DEBUG: demo页面 lessonPath:', lessonPath, 'currentPath:', currentPath)
+      // 简化匹配：直接从lesson.url提取路径进行匹配
+      // /cn/course/chapter1/lesson1 → chapter1/lesson1
+      const lessonPath = lesson.url.replace(/^\/[^\/]+\/course\//, '')
+      console.log('DEBUG: lessonPath:', lessonPath, 'slug:', slug)
       
-      if (lessonPath === currentPath || lesson.url.endsWith(currentPath)) {
+      if (lessonPath === slug) {
         currentLesson = lesson
-        console.log('DEBUG: demo页面匹配成功!')
+        console.log('DEBUG: 匹配成功!', lesson)
       }
-      lessonList.push(lesson)
     })
   }
-  console.log('DEBUG: demo页面匹配到的currentLesson:', currentLesson)
+  
+  console.log('DEBUG: 最终currentLesson:', currentLesson)
+  console.log('DEBUG: chapter.lessons[0] (raw from JSON):', chapter?.lessons?.[0])
+  
+  // 直接检查course.json中第一个lesson的数据
+  if (chapter?.lessons?.[0]) {
+    console.log('DEBUG: 第一个lesson的完整数据:', JSON.stringify(chapter.lessons[0], null, 2))
+  }
 
-  // 如果找不到课程，使用 frontmatter 的信息，但保留视频相关的字段
+  // 构建课程信息，保留视频相关字段
   const lessonInfo = currentLesson ? {
     ...currentLesson,
     // 如果currentLesson没有title，从frontmatter获取
     title: currentLesson.title || lessonData.frontmatter.title,
-    duration: currentLesson.duration || lessonData.frontmatter.duration || '30分钟'
+    duration: currentLesson.duration || lessonData.frontmatter.duration || '30分钟',
+    // 确保视频字段被传递
+    videoUrl: currentLesson.videoUrl,
+    streamId: currentLesson.streamId,
+    thumbnail: currentLesson.thumbnail
   } : {
     title: lessonData.frontmatter.title,
-    duration: lessonData.frontmatter.duration || '30分钟'
+    duration: lessonData.frontmatter.duration || '30分钟',
+    // 没有找到currentLesson时，视频字段为undefined
+    videoUrl: undefined,
+    streamId: undefined,
+    thumbnail: undefined
   }
 
   const canPreview = currentLesson && currentLesson.isPreview === true;
@@ -137,7 +132,7 @@ export default function CoursePage({ params }) {
           <p className="mb-6 text-gray-600">本课程仅限已购买或已登录用户观看。</p>
           <button
             className="bg-[#5d31ff] hover:bg-[#4a28d9] text-white px-6 py-2 rounded-full font-bold transition-colors"
-            onClick={() => { window.location.href = '/cn/(auth)/login'; }}
+            onClick={() => { window.location.href = '/cn/login'; }}
           >
             去登录
           </button>
@@ -145,6 +140,11 @@ export default function CoursePage({ params }) {
       </div>
     );
   }
+
+  console.log('DEBUG: session:', session)
+  console.log('DEBUG: lessonData:', lessonData)
+  console.log('DEBUG: currentLesson:', currentLesson)
+  console.log('DEBUG: lessonInfo passed to CourseTemplate:', lessonInfo)
 
   return (
     <CourseTemplate
