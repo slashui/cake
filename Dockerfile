@@ -21,3 +21,6 @@ EXPOSE 3000
 
 # Define the command to run the application
 CMD ["npm", "start"]
+
+RUN chmod -R 755 /app
+USER node
