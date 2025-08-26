@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { renameCourseLesson } from '../../../../../../libs/courseFileSystem';
+import { renameCourseLesson } from '../../../../../libs/courseFileSystem';
 
 export async function PUT(request, { params }) {
   try {
