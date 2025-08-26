@@ -4,17 +4,11 @@ const nextConfig = {
     _next_intl_trailing_slash: '1'
   },
   swcMinify: false,
-  compiler: {
-    removeConsole: false,
-    styledComponents: false
-  },
+  compiler: false,
   experimental: {
     swcPlugins: [],
     forceSwcTransforms: false,
     esmExternals: false
-  },
-  future: {
-    webpack5: true
   },
   webpack: (config) => {
     config.module.rules.push({
