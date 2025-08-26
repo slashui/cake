@@ -11,96 +11,106 @@ import {
   X,
   Upload,
   Video,
-  FileVideo
+  FileVideo,
+  BookOpen,
+  Settings,
+  Users
 } from 'lucide-react'
 
 export default function AdminDashboard() {
-  const [courseData, setCourseData] = useState(null)
-  const [selectedItem, setSelectedItem] = useState(null) // Can be chapter or lesson
+  const [courses, setCourses] = useState([])
+  const [selectedCourse, setSelectedCourse] = useState(null)
+  const [selectedItem, setSelectedItem] = useState(null) // Can be course, chapter or lesson
   const [expandedChapters, setExpandedChapters] = useState(new Set())
   const [editingItem, setEditingItem] = useState(null)
   const [editValue, setEditValue] = useState('')
   const [mdxContent, setMdxContent] = useState('')
   const [loadingMdx, setLoadingMdx] = useState(false)
+  const [activeTab, setActiveTab] = useState('courses') // courses, users
+  const [showCourseModal, setShowCourseModal] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [userSearch, setUserSearch] = useState('')
+  const [searchedUser, setSearchedUser] = useState(null)
+  const [searchingUser, setSearchingUser] = useState(false)
+  const [grantingAccess, setGrantingAccess] = useState(false)
+  const [editingChapter, setEditingChapter] = useState(null)
+  const [editingLesson, setEditingLesson] = useState(null)
+  const [editName, setEditName] = useState('')
+  const [chapterEditData, setChapterEditData] = useState({ showName: '', description: '' })
+  const [lessonEditData, setLessonEditData] = useState({ showName: '', duration: '', url: '', videoUrl: '', streamId: '', thumbnail: '' })
 
   useEffect(() => {
-    loadCourseData()
+    loadCourses()
   }, [])
 
   // 当选择课程时加载MDX内容
   useEffect(() => {
     if (selectedItem && selectedItem.type === 'lesson') {
-      load_mdx_content(selectedItem.chapterId, selectedItem.lessonIndex)
+      load_mdx_content(selectedItem.chapterNumber, selectedItem.lessonNumber)
     } else {
       setMdxContent('')
     }
   }, [selectedItem])
 
-  const loadCourseData = async () => {
-    try {
-      console.log('Fetching course data from /course.json')
-      const response = await fetch('/course.json?t=' + Date.now(), {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+  // 当选择章节时初始化编辑数据
+  useEffect(() => {
+    if (selectedItem && selectedItem.type === 'chapter') {
+      const chapter = selectedCourse?.fileSystemStructure?.chapters?.find(c => c.chapterNumber === selectedItem?.chapterNumber)
+      setChapterEditData({
+        showName: chapter?.title || chapter?.showName || selectedItem?.chapterNumber || '',
+        description: chapter?.description || ''
       })
-      
-      console.log('Response status:', response.status)
-      console.log('Response headers:', response.headers)
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-      
-      const text = await response.text()
-      console.log('Response text length:', text.length)
-      console.log('First 100 chars:', text.substring(0, 100))
-      
-      const data = JSON.parse(text)
-      console.log('Parsed data:', data)
-      
-      setCourseData(data)
-      // Expand first chapter by default
-      if (data.chapters && data.chapters.length > 0) {
-        setExpandedChapters(new Set([data.chapters[0].id]))
+    }
+  }, [selectedItem, selectedCourse])
+
+  // 当选择课时时初始化编辑数据
+  useEffect(() => {
+    if (selectedItem && selectedItem.type === 'lesson') {
+      const chapter = selectedCourse?.fileSystemStructure?.chapters?.find(c => c.chapterNumber === selectedItem?.chapterNumber)
+      const lesson = chapter?.lessons?.find(l => l.lessonNumber === selectedItem?.lessonNumber)
+      setLessonEditData({
+        showName: lesson?.title || lesson?.showName || selectedItem?.lessonNumber || '',
+        duration: lesson?.duration || '',
+        url: lesson?.url || '',
+        videoUrl: lesson?.videoUrl || '',
+        streamId: lesson?.streamId || '',
+        thumbnail: lesson?.thumbnail || ''
+      })
+    }
+  }, [selectedItem, selectedCourse])
+
+  const loadCourses = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch('/api/courses?includeStructure=true')
+      if (response.ok) {
+        const data = await response.json()
+        setCourses(data)
+        // 自动选择第一个课程
+        if (data.length > 0) {
+          setSelectedCourse(data[0])
+          if (data[0].fileSystemStructure?.chapters?.length > 0) {
+            setExpandedChapters(new Set([data[0].fileSystemStructure.chapters[0].chapterNumber]))
+          }
+        }
       }
     } catch (error) {
-      console.error('Failed to load course data:', error)
-      console.error('Error details:', error.message)
-      // Set some default data for testing
-      setCourseData({
-        title: "默认课程",
-        chapters: [
-          {
-            id: "chapter1",
-            title: "测试章节",
-            description: "测试描述",
-            status: "completed",
-            lessons: [
-              {
-                title: "测试课程",
-                duration: "30分钟",
-                url: "/test"
-              }
-            ]
-          }
-        ]
-      })
+      console.error('Failed to load courses:', error)
+    } finally {
+      setLoading(false)
     }
   }
 
   // 加载MDX内容
-  const load_mdx_content = async (chapterId, lessonIndex) => {
-    if (!chapterId || lessonIndex === undefined) return
+  const load_mdx_content = async (chapterNumber, lessonNumber) => {
+    if (!selectedCourse?.courseId || !chapterNumber || !lessonNumber) return
     
     setLoadingMdx(true)
     try {
-      const slug = `${chapterId}/lesson${lessonIndex + 1}`
-      const response = await fetch(`/api/lessons/content?slug=${slug}`)
+      const response = await fetch(`/api/courses/${selectedCourse.courseId}/content?chapter=${chapterNumber}&lesson=${lessonNumber}`)
       if (response.ok) {
         const data = await response.json()
-        setMdxContent(data.content || '')
+        setMdxContent(data.content || '欢迎学习本节课程！\n\n在这里编写课程内容...')
       } else {
         console.error('Failed to load MDX content')
         setMdxContent('欢迎学习本节课程！\n\n在这里编写课程内容...')
@@ -114,17 +124,16 @@ export default function AdminDashboard() {
   }
 
   // 保存MDX内容
-  const save_mdx_content = async (chapterId, lessonIndex, content) => {
-    if (!chapterId || lessonIndex === undefined) return false
+  const save_mdx_content = async (chapterNumber, lessonNumber, content) => {
+    if (!selectedCourse?.courseId || !chapterNumber || !lessonNumber) return false
     
     try {
-      const slug = `${chapterId}/lesson${lessonIndex + 1}`
-      const response = await fetch('/api/lessons/content', {
-        method: 'POST',
+      const response = await fetch(`/api/courses/${selectedCourse.courseId}/content`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ slug, content })
+        body: JSON.stringify({ chapterNumber, lessonNumber, content })
       })
       
       if (response.ok) {
@@ -154,127 +163,423 @@ export default function AdminDashboard() {
     setEditValue(currentValue)
   }
 
-  const cancelEdit = () => {
-    setEditingItem(null)
-    setEditValue('')
-  }
-
   const saveEdit = () => {
     if (!editingItem || !editValue.trim()) return
 
-    const updatedData = { ...courseData }
-    
-    if (editingItem.type === 'chapter') {
-      const chapter = updatedData.chapters.find(c => c.id === editingItem.id)
-      if (chapter) {
-        chapter.title = editValue.trim()
-      }
-    } else if (editingItem.type === 'lesson') {
-      const [chapterId, lessonIndex] = editingItem.id.split('-')
-      const chapter = updatedData.chapters.find(c => c.id === chapterId)
-      if (chapter && chapter.lessons[parseInt(lessonIndex)]) {
-        chapter.lessons[parseInt(lessonIndex)].title = editValue.trim()
-      }
-    }
-
-    setCourseData(updatedData)
+    // This function can be removed as we're using direct state updates now
     setEditingItem(null)
     setEditValue('')
   }
 
-  const addChapter = () => {
-    const newChapter = {
-      id: `chapter${courseData.chapters.length + 1}`,
-      title: '新章节',
-      description: '章节描述',
-      status: 'pending',
-      lessons: []
-    }
-    
-    setCourseData({
-      ...courseData,
-      chapters: [...courseData.chapters, newChapter]
-    })
-  }
-
-  const deleteChapter = (chapterId) => {
-    if (confirm('确定要删除这个章节吗？')) {
-      setCourseData({
-        ...courseData,
-        chapters: courseData.chapters.filter(c => c.id !== chapterId)
-      })
-    }
-  }
-
-  const addLesson = (chapterId) => {
-    const updatedData = { ...courseData }
-    const chapter = updatedData.chapters.find(c => c.id === chapterId)
-    
-    if (chapter) {
-      const newLesson = {
-        title: '新课程',
-        duration: '30分钟',
-        url: `/cn/course/${chapterId}/lesson${chapter.lessons.length + 1}`
-      }
-      
-      chapter.lessons.push(newLesson)
-      setCourseData(updatedData)
-    }
-  }
-
-  const deleteLesson = (chapterId, lessonIndex) => {
-    if (confirm('确定要删除这个课程吗？')) {
-      const updatedData = { ...courseData }
-      const chapter = updatedData.chapters.find(c => c.id === chapterId)
-      
-      if (chapter) {
-        chapter.lessons.splice(lessonIndex, 1)
-        setCourseData(updatedData)
-        
-        // Clear selection if deleted lesson was selected
-        if (selectedLesson && selectedLesson.chapterId === chapterId && selectedLesson.lessonIndex === lessonIndex) {
-          setSelectedLesson(null)
-        }
-      }
-    }
-  }
-
-  const selectItem = (type, chapterId, lessonIndex = null) => {
-    if (type === 'chapter') {
-      setSelectedItem({ type: 'chapter', chapterId })
-    } else {
-      setSelectedItem({ type: 'lesson', chapterId, lessonIndex })
-    }
-  }
-
-  const saveCourseData = async () => {
+  // 课程管理函数
+  const createCourse = async (courseData) => {
     try {
-      console.log('Saving course data:', courseData)
-      const response = await fetch('/api/update-course', {
+      const response = await fetch('/api/courses', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(courseData)
       })
-
-      if (!response.ok) {
-        throw new Error('保存失败')
+      
+      if (response.ok) {
+        const newCourse = await response.json()
+        // 重新加载课程列表以获取完整结构
+        await loadCourses()
+        // 选择新创建的课程
+        setSelectedCourse(newCourse)
+        setShowCourseModal(false)
+        alert('课程创建成功！文件夹和基础结构已创建。')
+      } else {
+        const error = await response.json()
+        alert(`创建失败: ${error.error}`)
       }
-
-      const result = await response.json()
-      alert('课程数据已保存到 course.json！')
-      console.log('Course data saved successfully:', result)
     } catch (error) {
-      console.error('Save error:', error)
-      alert('保存失败，请重试')
+      console.error('Failed to create course:', error)
+      alert('创建失败，请重试')
+    }
+  }
+
+  const updateCourse = async (courseData) => {
+    try {
+      const response = await fetch('/api/courses', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(courseData)
+      })
+      
+      if (response.ok) {
+        const updatedCourse = await response.json()
+        setCourses(courses.map(c => c.id === updatedCourse.id ? updatedCourse : c))
+        setSelectedCourse(updatedCourse)
+        alert('课程更新成功！')
+      }
+    } catch (error) {
+      console.error('Failed to update course:', error)
+      alert('更新失败，请重试')
+    }
+  }
+
+  const deleteCourse = async (courseId) => {
+    if (confirm('确定要删除这个课程吗？这将删除文件夹中的所有内容和数据库记录。')) {
+      try {
+        const response = await fetch(`/api/courses?courseId=${courseId}`, {
+          method: 'DELETE'
+        })
+        
+        if (response.ok) {
+          setCourses(courses.filter(c => c.courseId !== courseId))
+          if (selectedCourse?.courseId === courseId) {
+            setSelectedCourse(courses.find(c => c.courseId !== courseId) || null)
+          }
+          alert('课程删除成功！文件夹和数据库记录已删除。')
+        }
+      } catch (error) {
+        console.error('Failed to delete course:', error)
+        alert('删除失败，请重试')
+      }
+    }
+  }
+
+  const addChapter = async () => {
+    if (!selectedCourse) return
+    
+    const existingChapters = selectedCourse.fileSystemStructure?.chapters || []
+    const chapterNumber = `chapter${existingChapters.length + 1}`
+    
+    try {
+      const response = await fetch(`/api/courses/${selectedCourse.courseId}/content`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'chapter',
+          chapterNumber: chapterNumber
+        })
+      })
+      
+      if (response.ok) {
+        // 重新加载课程结构
+        await loadCourses()
+        alert('章节创建成功！')
+      } else {
+        const error = await response.json()
+        alert(`创建章节失败: ${error.error}`)
+      }
+    } catch (error) {
+      console.error('Failed to add chapter:', error)
+      alert('添加章节失败，请重试')
+    }
+  }
+
+  const deleteChapter = async (chapterId) => {
+    if (confirm('确定要删除这个章节吗？')) {
+      try {
+        const response = await fetch(`/api/chapters?chapterId=${chapterId}`, {
+          method: 'DELETE'
+        })
+        
+        if (response.ok) {
+          const updatedCourse = {
+            ...selectedCourse,
+            chapters: selectedCourse.chapters.filter(c => c.id !== chapterId)
+          }
+          setSelectedCourse(updatedCourse)
+          setCourses(courses.map(c => c.id === selectedCourse.id ? updatedCourse : c))
+        }
+      } catch (error) {
+        console.error('Failed to delete chapter:', error)
+        alert('删除失败，请重试')
+      }
+    }
+  }
+
+  const addLesson = async (chapterNumber) => {
+    if (!selectedCourse) return
+    
+    const chapter = selectedCourse.fileSystemStructure?.chapters.find(c => c.chapterNumber === chapterNumber)
+    const lessonNumber = `lesson${(chapter?.lessons?.length || 0) + 1}`
+    
+    try {
+      const response = await fetch(`/api/courses/${selectedCourse.courseId}/content`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'lesson',
+          chapterNumber: chapterNumber,
+          lessonNumber: lessonNumber,
+          lessonData: {
+            title: '新课时',
+            duration: '30分钟',
+            content: '欢迎学习本节课程！\n\n在这里编写课程内容...'
+          }
+        })
+      })
+      
+      if (response.ok) {
+        // 重新加载课程结构
+        await loadCourses()
+        alert('课时创建成功！')
+      } else {
+        const error = await response.json()
+        alert(`创建课时失败: ${error.error}`)
+      }
+    } catch (error) {
+      console.error('Failed to add lesson:', error)
+      alert('添加课时失败，请重试')
+    }
+  }
+
+  // 用户搜索函数
+  const searchUser = async (email) => {
+    if (!email.trim()) return
+    
+    setSearchingUser(true)
+    try {
+      const response = await fetch(`/api/users?email=${encodeURIComponent(email.trim())}`)
+      if (response.ok) {
+        const user = await response.json()
+        setSearchedUser(user)
+      } else if (response.status === 404) {
+        setSearchedUser(null)
+        alert('未找到该用户')
+      } else {
+        alert('搜索用户时出错')
+      }
+    } catch (error) {
+      console.error('Error searching user:', error)
+      alert('搜索用户时出错')
+    } finally {
+      setSearchingUser(false)
+    }
+  }
+
+  // 授权用户访问课程
+  const grantUserAccess = async (userId, courseIds) => {
+    setGrantingAccess(true)
+    try {
+      const results = await Promise.all(
+        courseIds.map(courseId =>
+          fetch('/api/user-courses', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ userId, courseId })
+          })
+        )
+      )
+      
+      const allSuccessful = results.every(r => r.ok)
+      if (allSuccessful) {
+        alert('用户授权成功！')
+        // 重新搜索用户以更新状态
+        if (searchedUser) {
+          await searchUser(searchedUser.email)
+        }
+      } else {
+        alert('部分授权失败，请检查')
+      }
+    } catch (error) {
+      console.error('Error granting access:', error)
+      alert('授权失败，请重试')
+    } finally {
+      setGrantingAccess(false)
+    }
+  }
+
+  // 撤销用户课程访问权限
+  const revokeUserAccess = async (userId, courseId) => {
+    if (!confirm('确定要撤销该用户的课程访问权限吗？')) return
+    
+    try {
+      const response = await fetch(`/api/user-courses?userId=${userId}&courseId=${courseId}`, {
+        method: 'DELETE'
+      })
+      
+      if (response.ok) {
+        alert('访问权限已撤销')
+        // 重新搜索用户以更新状态
+        if (searchedUser) {
+          await searchUser(searchedUser.email)
+        }
+      } else {
+        alert('撤销权限失败')
+      }
+    } catch (error) {
+      console.error('Error revoking access:', error)
+      alert('撤销权限失败')
+    }
+  }
+
+  // 开始编辑章节名称
+  const startEditChapter = (chapterNumber) => {
+    setEditingChapter(chapterNumber)
+    setEditName(chapterNumber)
+  }
+
+  // 开始编辑课时名称
+  const startEditLesson = (chapterNumber, lessonNumber) => {
+    setEditingLesson(`${chapterNumber}-${lessonNumber}`)
+    setEditName(lessonNumber)
+  }
+
+  // 取消编辑
+  const cancelEdit = () => {
+    setEditingChapter(null)
+    setEditingLesson(null)
+    setEditName('')
+  }
+
+  // 保存章节名称
+  const saveChapterName = async (oldChapterNumber, newChapterName) => {
+    if (!newChapterName.trim() || !selectedCourse) return
+    
+    try {
+      const response = await fetch(`/api/courses/${selectedCourse.courseId}/rename-chapter`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          oldChapterNumber,
+          newChapterNumber: newChapterName.trim()
+        })
+      })
+      
+      if (response.ok) {
+        await loadCourses() // 重新加载数据
+        alert('章节名称已更新')
+        cancelEdit()
+      } else {
+        alert('更新失败')
+      }
+    } catch (error) {
+      console.error('Error updating chapter name:', error)
+      alert('更新失败')
+    }
+  }
+
+  // 保存章节信息
+  const saveChapterInfo = async () => {
+    if (!selectedItem || !selectedCourse) return
+    
+    try {
+      const response = await fetch(`/api/courses/${selectedCourse.courseId}/update-chapter`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          chapterNumber: selectedItem.chapterNumber,
+          showName: chapterEditData.showName.trim(),
+          description: chapterEditData.description.trim()
+        })
+      })
+      
+      if (response.ok) {
+        await loadCourses() // 重新加载数据
+        alert('章节信息已更新')
+      } else {
+        alert('更新失败')
+      }
+    } catch (error) {
+      console.error('Error updating chapter info:', error)
+      alert('更新失败')
+    }
+  }
+
+  // 保存课时信息
+  const saveLessonInfo = async () => {
+    if (!selectedItem || !selectedCourse) return
+    
+    try {
+      // 首先保存课时信息
+      const response = await fetch(`/api/courses/${selectedCourse.courseId}/update-lesson`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          chapterNumber: selectedItem.chapterNumber,
+          lessonNumber: selectedItem.lessonNumber,
+          showName: lessonEditData.showName.trim(),
+          duration: lessonEditData.duration.trim(),
+          videoUrl: lessonEditData.videoUrl.trim(),
+          streamId: lessonEditData.streamId.trim(),
+          thumbnail: lessonEditData.thumbnail.trim()
+        })
+      })
+      
+      if (response.ok) {
+        // 然后保存MDX内容
+        const mdxSuccess = await save_mdx_content(selectedItem.chapterNumber, selectedItem.lessonNumber, mdxContent)
+        
+        await loadCourses() // 重新加载数据
+        
+        if (mdxSuccess) {
+          alert('课时信息和内容已保存')
+        } else {
+          alert('课时信息已保存，但内容保存失败')
+        }
+      } else {
+        alert('保存失败')
+      }
+    } catch (error) {
+      console.error('Error saving lesson info:', error)
+      alert('保存失败')
+    }
+  }
+
+  // 保存课时名称
+  const saveLessonName = async (chapterNumber, oldLessonNumber, newLessonName) => {
+    if (!newLessonName.trim() || !selectedCourse) return
+    
+    try {
+      const response = await fetch(`/api/courses/${selectedCourse.courseId}/rename-lesson`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          chapterNumber,
+          oldLessonNumber,
+          newLessonNumber: newLessonName.trim()
+        })
+      })
+      
+      if (response.ok) {
+        await loadCourses() // 重新加载数据
+        alert('课时名称已更新')
+        cancelEdit()
+      } else {
+        alert('更新失败')
+      }
+    } catch (error) {
+      console.error('Error updating lesson name:', error)
+      alert('更新失败')
+    }
+  }
+
+
+  const selectItem = (type, chapterNumber, lessonIndex = null, lessonNumber = null, courseId = null) => {
+    if (type === 'course') {
+      setSelectedItem({ type: 'course', courseId })
+    } else if (type === 'chapter') {
+      setSelectedItem({ type: 'chapter', chapterNumber })
+    } else {
+      setSelectedItem({ type: 'lesson', chapterNumber, lessonIndex, lessonNumber })
     }
   }
 
   // VideoUpload Component
   const VideoUpload = ({ lessonId, onUploadComplete, currentVideoUrl, currentStreamId, currentThumbnail }) => {
     const [uploading, setUploading] = useState(false)
-    const [uploadProgress, setUploadProgress] = useState(0)
     const [dragOver, setDragOver] = useState(false)
 
     const handleFileSelect = async (file) => {
@@ -284,7 +589,6 @@ export default function AdminDashboard() {
       }
 
       setUploading(true)
-      setUploadProgress(0)
 
       try {
         const formData = new FormData()
@@ -308,7 +612,6 @@ export default function AdminDashboard() {
         alert('视频上传失败，请重试')
       } finally {
         setUploading(false)
-        setUploadProgress(0)
       }
     }
 
@@ -335,15 +638,15 @@ export default function AdminDashboard() {
       <div className="space-y-4">
         {/* Current Video Display */}
         {currentVideoUrl && (
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <div className="flex items-center space-x-2 mb-3">
+          <div className="bg-gray-50 p-4 rounded-lg hidden">
+            <div className="flex items-center space-x-2 hidden mb-3">
               <Video className="w-5 h-5 text-blue-600" />
               <span className="text-sm font-medium text-gray-700">当前视频</span>
             </div>
             
             {/* Thumbnail */}
             {currentThumbnail && (
-              <div className="mb-3">
+              <div className="mb-3 hidden">
                 <img 
                   src={currentThumbnail} 
                   alt="Video thumbnail"
@@ -354,14 +657,14 @@ export default function AdminDashboard() {
             
             {/* Stream ID */}
             {currentStreamId && (
-              <div className="mb-2">
+              <div className="mb-2 hidden">
                 <span className="text-xs font-medium text-gray-500">Stream ID: </span>
                 <span className="text-xs text-gray-700 font-mono bg-gray-200 px-1 rounded">{currentStreamId}</span>
               </div>
             )}
             
             {/* Video URL */}
-            <div>
+            <div className="hidden">
               <span className="text-xs font-medium text-gray-500">URL: </span>
               <div className="text-xs text-gray-600 break-all mt-1">{currentVideoUrl}</div>
             </div>
@@ -383,16 +686,10 @@ export default function AdminDashboard() {
         >
           {uploading ? (
             <div className="space-y-3">
-              <FileVideo className="w-12 h-12 text-blue-600 mx-auto animate-pulse" />
-              <div>
-                <div className="text-sm text-gray-600 mb-2">上传中...</div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${uploadProgress}%` }}
-                  ></div>
-                </div>
+              <div className="flex justify-center">
+                <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
               </div>
+              <div className="text-sm text-gray-600">正在上传视频到 CloudFlare Stream...</div>
             </div>
           ) : (
             <div className="space-y-3">
@@ -430,353 +727,986 @@ export default function AdminDashboard() {
     )
   }
 
-  if (!courseData) {
+  // Course Authorization Panel Component
+  const CourseAuthorizationPanel = ({ user, courses, onGrantAccess, grantingAccess }) => {
+    const [selectedCourses, setSelectedCourses] = useState(new Set())
+
+    // 获取用户已有的课程ID列表
+    const userCourseIds = new Set(user.userCourses?.map(uc => uc.course.id) || [])
+
+    const toggleCourseSelection = (courseId) => {
+      const newSelected = new Set(selectedCourses)
+      if (newSelected.has(courseId)) {
+        newSelected.delete(courseId)
+      } else {
+        newSelected.add(courseId)
+      }
+      setSelectedCourses(newSelected)
+    }
+
+    const handleGrantAccess = () => {
+      if (selectedCourses.size === 0) {
+        alert('请至少选择一个课程')
+        return
+      }
+      onGrantAccess(user.id, Array.from(selectedCourses))
+      setSelectedCourses(new Set()) // 清空选择
+    }
+
+    return (
+      <div className="space-y-4">
+        <div className="text-sm text-gray-600 mb-4">
+          选择要授权给用户的课程，已拥有的课程会显示为灰色
+        </div>
+
+        <div className="space-y-3">
+          {courses.map((course) => {
+            const hasAccess = userCourseIds.has(course.id)
+            const isSelected = selectedCourses.has(course.id)
+            
+            return (
+              <div
+                key={course.id}
+                className={`p-3 rounded-lg border transition-colors ${
+                  hasAccess
+                    ? 'bg-gray-100 border-gray-300'
+                    : isSelected
+                    ? 'bg-blue-50 border-blue-300'
+                    : 'bg-white border-gray-200 hover:bg-gray-50'
+                }`}
+              >
+                <label className="flex items-start space-x-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={hasAccess || isSelected}
+                    disabled={hasAccess}
+                    onChange={() => !hasAccess && toggleCourseSelection(course.id)}
+                    className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <div className="flex-1">
+                    <div className="font-medium text-gray-900">{course.title}</div>
+                    <div className="text-sm text-gray-600 mt-1">{course.description}</div>
+                    <div className="flex items-center space-x-2 mt-2">
+                      <span className={`px-2 py-1 text-xs rounded-full ${
+                        course.status === 'PUBLISHED' 
+                          ? 'bg-green-100 text-green-700' 
+                          : course.status === 'DRAFT'
+                          ? 'bg-yellow-100 text-yellow-700'
+                          : 'bg-gray-100 text-gray-700'
+                      }`}>
+                        {course.status}
+                      </span>
+                      {hasAccess && (
+                        <span className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded-full">
+                          已拥有
+                        </span>
+                      )}
+                      {course.price && (
+                        <span className="text-xs text-gray-500">
+                          ¥{course.price}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </label>
+              </div>
+            )
+          })}
+        </div>
+
+        {selectedCourses.size > 0 && (
+          <div className="pt-4 border-t border-gray-200">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm text-gray-600">
+                已选择 {selectedCourses.size} 个课程
+              </span>
+              <button
+                onClick={() => setSelectedCourses(new Set())}
+                className="text-sm text-gray-500 hover:text-gray-700"
+              >
+                清空选择
+              </button>
+            </div>
+            <button
+              onClick={handleGrantAccess}
+              disabled={grantingAccess}
+              className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+            >
+              {grantingAccess ? '授权中...' : `授权 ${selectedCourses.size} 个课程`}
+            </button>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // 课程创建模态框
+  const CourseModal = () => {
+    const [formData, setFormData] = useState({
+      courseId: '',
+      title: '',
+      description: '',
+      price: '',
+      status: 'DRAFT',
+      category: ''
+    })
+
+    const handleSubmit = (e) => {
+      e.preventDefault()
+      createCourse({
+        ...formData,
+        price: formData.price ? parseFloat(formData.price) : null
+      })
+    }
+
+    if (!showCourseModal) return null
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg p-6 w-full max-w-md">
+          <h2 className="text-xl font-bold mb-4">创建新课程</h2>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">课程ID</label>
+              <input
+                type="text"
+                required
+                value={formData.courseId}
+                onChange={(e) => setFormData({...formData, courseId: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '')})}
+                placeholder="react-basics, vue-advanced 等"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <p className="text-xs text-gray-500 mt-1">仅限小写字母、数字和中划线，用作文件夹名和URL</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">课程标题</label>
+              <input
+                type="text"
+                required
+                value={formData.title}
+                onChange={(e) => setFormData({...formData, title: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">课程描述</label>
+              <textarea
+                rows={3}
+                value={formData.description}
+                onChange={(e) => setFormData({...formData, description: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">价格 (可选)</label>
+              <input
+                type="number"
+                step="0.01"
+                value={formData.price}
+                onChange={(e) => setFormData({...formData, price: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">分类 (可选)</label>
+              <input
+                type="text"
+                value={formData.category}
+                onChange={(e) => setFormData({...formData, category: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div className="flex justify-end space-x-3 pt-4">
+              <button
+                type="button"
+                onClick={() => setShowCourseModal(false)}
+                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+              >
+                取消
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              >
+                创建课程
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    )
+  }
+
+  if (loading) {
     return <div className="p-8">加载中...</div>
   }
 
   return (
     <div className="flex h-screen bg-gray-50">
-      {/* Left Panel - Course Tree */}
-      <div className="w-1/2 bg-white border-r border-gray-200 overflow-y-auto">
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-gray-900">课程管理</h1>
-            <div className="flex space-x-2">
-              <button
-                onClick={saveCourseData}
-                className="px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-              >
-                保存课程
-              </button>
-              <button
-                onClick={addChapter}
-                className="flex items-center px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-              >
-                <Plus className="w-4 h-4 mr-1" />
-                添加章节
-              </button>
-            </div>
+      {/* Left Panel - Course Management */}
+      <div className="w-1/3 bg-white border-r border-gray-200 overflow-y-auto">
+        {/* Header with Tabs */}
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex space-x-1 mb-4">
+            <button
+              onClick={() => setActiveTab('courses')}
+              className={`px-3 py-2 text-sm rounded-md ${
+                activeTab === 'courses'
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <BookOpen className="w-4 h-4 inline mr-1" />
+              课程管理
+            </button>
+            <button
+              onClick={() => setActiveTab('users')}
+              className={`px-3 py-2 text-sm rounded-md ${
+                activeTab === 'users'
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <Users className="w-4 h-4 inline mr-1" />
+              用户授权
+            </button>
           </div>
-          <p className="text-gray-600 mt-2">{courseData.title}</p>
+          
+          {activeTab === 'courses' && (
+            <button
+              onClick={() => setShowCourseModal(true)}
+              className="w-full flex items-center justify-center px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
+              <Plus className="w-4 h-4 mr-1" />
+              创建课程
+            </button>
+          )}
         </div>
 
-        <div className="p-4">
-          {courseData.chapters.map((chapter) => (
-            <div key={chapter.id} className="mb-4">
-              {/* Chapter Header */}
-              <div 
-                className={`p-3 rounded-lg border-2 transition-colors cursor-pointer ${
-                  selectedItem?.type === 'chapter' && selectedItem?.chapterId === chapter.id
-                    ? 'bg-blue-50 border-blue-200'
-                    : 'bg-gray-50 border-transparent hover:bg-gray-100'
-                }`}
-                onClick={() => selectItem('chapter', chapter.id)}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center flex-1">
+        {/* Course List */}
+        {activeTab === 'courses' && (
+          <div className="p-4">
+            <h2 className="text-lg font-semibold mb-3">所有课程 ({courses.length})</h2>
+            <div className="space-y-2">
+              {courses.map((course) => (
+                <div
+                  key={course.id}
+                  className={`p-3 rounded-lg border cursor-pointer transition-colors ${
+                    selectedCourse?.id === course.id
+                      ? 'bg-blue-50 border-blue-200'
+                      : 'bg-white border-gray-200 hover:bg-gray-50'
+                  }`}
+                  onClick={() => {
+                    setSelectedCourse(course)
+                    setSelectedItem(null)
+                    if (course.fileSystemStructure?.chapters?.length > 0) {
+                      setExpandedChapters(new Set([course.fileSystemStructure.chapters[0].chapterNumber]))
+                    }
+                  }}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h3 className="font-medium text-gray-900">{course.title}</h3>
+                      <p className="text-sm text-gray-600 mt-1">{course.description}</p>
+                      <div className="flex items-center space-x-2 mt-2">
+                        <span className={`px-2 py-1 text-xs rounded-full ${
+                          course.status === 'PUBLISHED' 
+                            ? 'bg-green-100 text-green-700' 
+                            : course.status === 'DRAFT'
+                            ? 'bg-yellow-100 text-yellow-700'
+                            : 'bg-gray-100 text-gray-700'
+                        }`}>
+                          {course.status}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {course.fileSystemStructure?.chapters?.length || 0} 章节
+                        </span>
+                      </div>
+                    </div>
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
-                        toggleChapter(chapter.id)
-                      }}
-                      className="mr-2 text-gray-500 hover:text-gray-700"
-                    >
-                      {expandedChapters.has(chapter.id) ? (
-                        <ChevronDown className="w-5 h-5" />
-                      ) : (
-                        <ChevronRight className="w-5 h-5" />
-                      )}
-                    </button>
-                    
-                    <span className="font-medium text-gray-900 flex-1">
-                      {chapter.title}
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center space-x-1">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        addLesson(chapter.id)
-                      }}
-                      className="p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded"
-                      title="添加课程"
-                    >
-                      <Plus className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        deleteChapter(chapter.id)
+                        deleteCourse(course.courseId)
                       }}
                       className="p-1 text-red-600 hover:text-red-800 hover:bg-red-100 rounded"
-                      title="删除章节"
+                      title="删除课程"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* User Authorization */}
+        {activeTab === 'users' && (
+          <div className="p-4">
+            <h2 className="text-lg font-semibold mb-3">用户授权管理</h2>
+            
+            {/* User Search */}
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  通过邮箱搜索用户
+                </label>
+                <div className="flex space-x-2">
+                  <input
+                    type="email"
+                    value={userSearch}
+                    onChange={(e) => setUserSearch(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        searchUser(userSearch)
+                      }
+                    }}
+                    placeholder="输入用户邮箱..."
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <button
+                    onClick={() => searchUser(userSearch)}
+                    disabled={searchingUser || !userSearch.trim()}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    {searchingUser ? '搜索中...' : '搜索'}
+                  </button>
+                </div>
               </div>
 
-              {/* Chapter Lessons */}
-              {expandedChapters.has(chapter.id) && (
-                <div className="ml-6 mt-2 space-y-2">
-                  {chapter.lessons.map((lesson, lessonIndex) => (
-                    <div
-                      key={lessonIndex}
-                      className={`p-3 rounded border-2 cursor-pointer transition-colors ${
-                        selectedItem?.type === 'lesson' && selectedItem?.chapterId === chapter.id && selectedItem?.lessonIndex === lessonIndex
-                          ? 'bg-blue-50 border-blue-200'
-                          : 'bg-white border-transparent hover:bg-gray-50'
-                      }`}
-                      onClick={() => selectItem('lesson', chapter.id, lessonIndex)}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <div className="font-medium text-gray-900 text-sm">
-                            {lesson.title}
+              {/* User Information */}
+              {searchedUser && (
+                <div className="bg-white border rounded-lg p-4">
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <h3 className="font-semibold text-gray-900">
+                        {searchedUser.name || '未设置姓名'}
+                      </h3>
+                      <p className="text-sm text-gray-600">{searchedUser.email}</p>
+                      <div className="mt-2 flex items-center space-x-2">
+                        <span className={`px-2 py-1 text-xs rounded-full ${
+                          searchedUser.role === 'VIP' 
+                            ? 'bg-purple-100 text-purple-700' 
+                            : searchedUser.role === 'PRIME'
+                            ? 'bg-blue-100 text-blue-700'
+                            : 'bg-gray-100 text-gray-700'
+                        }`}>
+                          {searchedUser.role}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          注册时间: {new Date(searchedUser.createdAt).toLocaleDateString('zh-CN')}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Current User Courses */}
+                  <div className="mb-4">
+                    <h4 className="font-medium text-gray-900 mb-2">当前拥有的课程</h4>
+                    {searchedUser.userCourses?.length > 0 ? (
+                      <div className="space-y-2">
+                        {searchedUser.userCourses.map((userCourse) => (
+                          <div 
+                            key={userCourse.id}
+                            className="flex items-center justify-between p-2 bg-green-50 border border-green-200 rounded"
+                          >
+                            <div>
+                              <span className="font-medium text-green-800">
+                                {userCourse.course.title}
+                              </span>
+                              <span className="ml-2 text-sm text-green-600">
+                                授权时间: {new Date(userCourse.grantedAt).toLocaleDateString('zh-CN')}
+                              </span>
+                            </div>
+                            <button
+                              onClick={() => revokeUserAccess(searchedUser.id, userCourse.course.id)}
+                              className="p-1 text-red-600 hover:text-red-800 hover:bg-red-100 rounded"
+                              title="撤销权限"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
                           </div>
-                          <div className="text-xs text-gray-500 mt-1">
-                            {lesson.duration}
-                          </div>
-                        </div>
-                        
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500">该用户暂无课程访问权限</p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Middle Panel - Course Structure or Course Selection for User Authorization */}
+      <div className="w-1/3 bg-white border-r border-gray-200 overflow-y-auto">
+        {activeTab === 'users' && searchedUser ? (
+          /* Course Authorization Panel */
+          <>
+            <div className="p-4 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-lg font-semibold">课程授权</h2>
+                  <p className="text-sm text-gray-600">为 {searchedUser.name || searchedUser.email} 选择课程</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4">
+              <CourseAuthorizationPanel 
+                user={searchedUser}
+                courses={courses}
+                onGrantAccess={grantUserAccess}
+                grantingAccess={grantingAccess}
+              />
+            </div>
+          </>
+        ) : selectedCourse ? (
+          <>
+            <div className="p-4 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-lg font-semibold">{selectedCourse.title}</h2>
+                  <p className="text-sm text-gray-600">课程结构管理</p>
+                </div>
+                <button
+                  onClick={addChapter}
+                  className="flex items-center px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  添加章节
+                </button>
+              </div>
+            </div>
+
+            <div className="p-4">
+              {selectedCourse.fileSystemStructure?.chapters?.map((chapter) => (
+                <div key={chapter.chapterNumber} className="mb-4">
+                  {/* Chapter Header */}
+                  <div 
+                    className={`p-3 rounded-lg border cursor-pointer transition-colors ${
+                      selectedItem?.type === 'chapter' && selectedItem?.chapterNumber === chapter.chapterNumber
+                        ? 'bg-blue-50 border-blue-200'
+                        : 'bg-gray-50 border-transparent hover:bg-gray-100'
+                    }`}
+                    onClick={() => selectItem('chapter', chapter.chapterNumber)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center flex-1">
                         <button
                           onClick={(e) => {
                             e.stopPropagation()
-                            deleteLesson(chapter.id, lessonIndex)
+                            toggleChapter(chapter.chapterNumber)
+                          }}
+                          className="mr-2 text-gray-500 hover:text-gray-700"
+                        >
+                          {expandedChapters.has(chapter.chapterNumber) ? (
+                            <ChevronDown className="w-5 h-5" />
+                          ) : (
+                            <ChevronRight className="w-5 h-5" />
+                          )}
+                        </button>
+                        
+                        {editingChapter === chapter.chapterNumber ? (
+                          <div className="flex items-center space-x-2 flex-1">
+                            <input
+                              type="text"
+                              value={editName}
+                              onChange={(e) => setEditName(e.target.value)}
+                              onKeyPress={(e) => {
+                                if (e.key === 'Enter') {
+                                  saveChapterName(chapter.chapterNumber, editName)
+                                }
+                                if (e.key === 'Escape') {
+                                  cancelEdit()
+                                }
+                              }}
+                              className="px-2 py-1 text-sm border rounded flex-1"
+                              autoFocus
+                            />
+                            <button
+                              onClick={() => saveChapterName(chapter.chapterNumber, editName)}
+                              className="p-1 text-green-600 hover:text-green-800"
+                            >
+                              <Check className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={cancelEdit}
+                              className="p-1 text-red-600 hover:text-red-800"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex-1">
+                            <div className="font-medium text-gray-900">
+                              {chapter.title || chapter.showName || `章节 ${chapter.chapterNumber}`}
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">
+                               {chapter.chapterNumber}
+                             </div>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="flex items-center space-x-1">
+                        {editingChapter !== chapter.chapterNumber && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              startEditChapter(chapter.chapterNumber)
+                            }}
+                            className="p-1 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded"
+                            title="编辑章节名称"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                        )}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            addLesson(chapter.chapterNumber)
+                          }}
+                          className="p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded"
+                          title="添加课程"
+                        >
+                          <Plus className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            // TODO: 实现删除章节功能
+                            alert('删除章节功能开发中...')
                           }}
                           className="p-1 text-red-600 hover:text-red-800 hover:bg-red-100 rounded"
-                          title="删除课程"
+                          title="删除章节"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
-                  ))}
+                  </div>
+
+                  {/* Chapter Lessons */}
+                  {expandedChapters.has(chapter.chapterNumber) && (
+                    <div className="ml-6 mt-2 space-y-2">
+                      {chapter.lessons?.map((lesson, lessonIndex) => (
+                        <div
+                          key={lesson.lessonNumber}
+                          className={`p-3 rounded border cursor-pointer transition-colors ${
+                            selectedItem?.type === 'lesson' && selectedItem?.chapterNumber === chapter.chapterNumber && selectedItem?.lessonNumber === lesson.lessonNumber
+                              ? 'bg-blue-50 border-blue-200'
+                              : 'bg-white border-transparent hover:bg-gray-50'
+                          }`}
+                          onClick={() => selectItem('lesson', chapter.chapterNumber, lessonIndex, lesson.lessonNumber)}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              {editingLesson === `${chapter.chapterNumber}-${lesson.lessonNumber}` ? (
+                                <div className="flex items-center space-x-2">
+                                  <input
+                                    type="text"
+                                    value={editName}
+                                    onChange={(e) => setEditName(e.target.value)}
+                                    onKeyPress={(e) => {
+                                      if (e.key === 'Enter') {
+                                        saveLessonName(chapter.chapterNumber, lesson.lessonNumber, editName)
+                                      }
+                                      if (e.key === 'Escape') {
+                                        cancelEdit()
+                                      }
+                                    }}
+                                    className="px-2 py-1 text-sm border rounded flex-1"
+                                    autoFocus
+                                  />
+                                  <button
+                                    onClick={() => saveLessonName(chapter.chapterNumber, lesson.lessonNumber, editName)}
+                                    className="p-1 text-green-600 hover:text-green-800"
+                                  >
+                                    <Check className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={cancelEdit}
+                                    className="p-1 text-red-600 hover:text-red-800"
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <>
+                                  <div className="font-medium text-gray-900 text-sm">
+                                    {lesson.title || lesson.showName || `课时 ${lesson.lessonNumber}`}
+                                  </div>
+                                  <div className="text-xs text-gray-500 mt-1">
+                                     {lesson.lessonNumber}
+                                    </div>
+                                </>
+                              )}
+                            </div>
+                            
+                            <div className="flex items-center space-x-1">
+                              {editingLesson !== `${chapter.chapterNumber}-${lesson.lessonNumber}` && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    startEditLesson(chapter.chapterNumber, lesson.lessonNumber)
+                                  }}
+                                  className="p-1 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded"
+                                  title="编辑课时名称"
+                                >
+                                  <Edit className="w-4 h-4" />
+                                </button>
+                              )}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  alert('删除课时功能开发中...')
+                                }}
+                                className="p-1 text-red-600 hover:text-red-800 hover:bg-red-100 rounded"
+                                title="删除课时"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
+              ))}
             </div>
-          ))}
-        </div>
+          </>
+        ) : (
+          <div className="flex items-center justify-center h-full text-gray-500">
+            <div className="text-center">
+              <BookOpen className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+              <p>选择一个课程开始管理</p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Right Panel - Content Editor */}
-      <div className="w-1/2 bg-white">
+      <div className="w-1/3 bg-white overflow-y-auto">
         {selectedItem ? (
           <div className="p-6">
-            {selectedItem.type === 'chapter' ? (
-              // Chapter Editor
+            {selectedItem.type === 'course' ? (
+              // Course Editor
               <>
                 <div className="border-b border-gray-200 pb-4 mb-6">
-                  <h2 className="text-xl font-semibold text-gray-900">
-                    章节编辑
-                  </h2>
-                  <p className="text-gray-600 mt-1">
-                    编辑章节信息
-                  </p>
+                  <h2 className="text-xl font-semibold text-gray-900">课程编辑</h2>
+                  <p className="text-gray-600 mt-1">编辑课程基本信息</p>
                 </div>
                 
                 <div className="space-y-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      章节标题
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">课程标题</label>
                     <input
                       type="text"
-                      value={courseData.chapters.find(c => c.id === selectedItem.chapterId)?.title || ''}
+                      value={selectedCourse?.title || ''}
                       onChange={(e) => {
-                        const updatedData = { ...courseData }
-                        const chapter = updatedData.chapters.find(c => c.id === selectedItem.chapterId)
-                        if (chapter) {
-                          chapter.title = e.target.value
-                          setCourseData(updatedData)
-                        }
+                        const updatedCourse = { ...selectedCourse, title: e.target.value }
+                        setSelectedCourse(updatedCourse)
+                        setCourses(courses.map(c => c.id === selectedCourse.id ? updatedCourse : c))
                       }}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      章节描述
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">课程描述</label>
                     <textarea
                       rows={4}
-                      value={courseData.chapters.find(c => c.id === selectedItem.chapterId)?.description || ''}
+                      value={selectedCourse?.description || ''}
                       onChange={(e) => {
-                        const updatedData = { ...courseData }
-                        const chapter = updatedData.chapters.find(c => c.id === selectedItem.chapterId)
-                        if (chapter) {
-                          chapter.description = e.target.value
-                          setCourseData(updatedData)
-                        }
+                        const updatedCourse = { ...selectedCourse, description: e.target.value }
+                        setSelectedCourse(updatedCourse)
+                        setCourses(courses.map(c => c.id === selectedCourse.id ? updatedCourse : c))
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">课程价格</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={selectedCourse?.price || ''}
+                      onChange={(e) => {
+                        const updatedCourse = { ...selectedCourse, price: e.target.value ? parseFloat(e.target.value) : null }
+                        setSelectedCourse(updatedCourse)
+                        setCourses(courses.map(c => c.id === selectedCourse.id ? updatedCourse : c))
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">课程分类</label>
+                    <input
+                      type="text"
+                      value={selectedCourse?.category || ''}
+                      onChange={(e) => {
+                        const updatedCourse = { ...selectedCourse, category: e.target.value }
+                        setSelectedCourse(updatedCourse)
+                        setCourses(courses.map(c => c.id === selectedCourse.id ? updatedCourse : c))
                       }}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   
-
-                  
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
-                      章节访问权限
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">课程状态</label>
                     <div className="space-y-3">
-                      {['FREE', 'PRIME', 'VIP'].map((role) => (
-                        <label key={role} className="flex items-center">
+                      {['DRAFT', 'PUBLISHED', 'ARCHIVED'].map((status) => (
+                        <label key={status} className="flex items-center">
                           <input
                             type="radio"
-                            name="chapterRole"
-                            value={role}
-                            checked={courseData.chapters.find(c => c.id === selectedItem.chapterId)?.requiredRole?.toUpperCase() === role}
+                            name="courseStatus"
+                            value={status}
+                            checked={selectedCourse?.status === status}
                             onChange={(e) => {
-                              console.log('Changing chapter requiredRole to:', e.target.value)
-                              const updatedData = { ...courseData }
-                              const chapter = updatedData.chapters.find(c => c.id === selectedItem.chapterId)
-                              if (chapter) {
-                                chapter.requiredRole = e.target.value
-                                console.log('Updated chapter:', chapter)
-                                setCourseData(updatedData)
-                              }
+                              const updatedCourse = { ...selectedCourse, status: e.target.value }
+                              setSelectedCourse(updatedCourse)
+                              setCourses(courses.map(c => c.id === selectedCourse.id ? updatedCourse : c))
                             }}
                             className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                           />
                           <span className={`ml-3 text-sm font-medium ${
-                            role === 'VIP' ? 'text-orange-600' :
-                            role === 'PRIME' ? 'text-purple-600' :
+                            status === 'PUBLISHED' ? 'text-green-600' :
+                            status === 'DRAFT' ? 'text-yellow-600' :
                             'text-gray-600'
                           }`}>
-                            {role === 'FREE' ? '免费用户' : role + '会员'}
+                            {status === 'DRAFT' ? '草稿' : status === 'PUBLISHED' ? '已发布' : '已归档'}
                           </span>
                         </label>
                       ))}
                     </div>
-                    <p className="text-sm text-gray-500 mt-2">
-                      设置访问此章节所需的用户角色等级
-                    </p>
                   </div>
+                  
+
+                  <button
+                    onClick={() => updateCourse(selectedCourse)}
+                    className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  >
+                    保存课程信息
+                  </button>
                 </div>
               </>
-            ) : (
-              // Lesson Editor
+            ) : selectedItem.type === 'chapter' ? (
+              // Chapter Editor
               <>
                 <div className="border-b border-gray-200 pb-4 mb-6">
-                  <h2 className="text-xl font-semibold text-gray-900">
-                    课程编辑
-                  </h2>
-                  <p className="text-gray-600 mt-1">
-                    编辑课程信息
-                  </p>
+                  <h2 className="text-xl font-semibold text-gray-900">章节编辑</h2>
+                  <p className="text-gray-600 mt-1">编辑章节信息</p>
                 </div>
                 
                 <div className="space-y-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      课程标题
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">章节编号</label>
                     <input
                       type="text"
-                      value={courseData.chapters.find(c => c.id === selectedItem.chapterId)?.lessons[selectedItem.lessonIndex]?.title || ''}
-                      onChange={(e) => {
-                        const updatedData = { ...courseData }
-                        const chapter = updatedData.chapters.find(c => c.id === selectedItem.chapterId)
-                        if (chapter && chapter.lessons[selectedItem.lessonIndex]) {
-                          chapter.lessons[selectedItem.lessonIndex].title = e.target.value
-                          setCourseData(updatedData)
-                        }
-                      }}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      value={selectedItem?.chapterNumber || ''}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-500 cursor-not-allowed"
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      课程时长
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">显示名称</label>
                     <input
                       type="text"
-                      value={courseData.chapters.find(c => c.id === selectedItem.chapterId)?.lessons[selectedItem.lessonIndex]?.duration || ''}
+                      value={chapterEditData.showName}
                       onChange={(e) => {
-                        const updatedData = { ...courseData }
-                        const chapter = updatedData.chapters.find(c => c.id === selectedItem.chapterId)
-                        if (chapter && chapter.lessons[selectedItem.lessonIndex]) {
-                          chapter.lessons[selectedItem.lessonIndex].duration = e.target.value
-                          setCourseData(updatedData)
-                        }
+                        setChapterEditData(prev => ({
+                          ...prev,
+                          showName: e.target.value
+                        }))
                       }}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="输入章节显示名称"
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      课程路径
-                    </label>
-                    <input
-                      type="text"
-                      value={courseData.chapters.find(c => c.id === selectedItem.chapterId)?.lessons[selectedItem.lessonIndex]?.url || ''}
+                    <label className="block text-sm font-medium text-gray-700 mb-2">章节描述</label>
+                    <textarea
+                      rows={4}
+                      value={chapterEditData.description}
                       onChange={(e) => {
-                        const updatedData = { ...courseData }
-                        const chapter = updatedData.chapters.find(c => c.id === selectedItem.chapterId)
-                        if (chapter && chapter.lessons[selectedItem.lessonIndex]) {
-                          chapter.lessons[selectedItem.lessonIndex].url = e.target.value
-                          setCourseData(updatedData)
-                        }
+                        setChapterEditData(prev => ({
+                          ...prev,
+                          description: e.target.value
+                        }))
                       }}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="输入章节描述"
+                    />
+                  </div>
+                  
+                  <div className="bg-gray-50 p-3 rounded-lg">
+                    <p className="text-sm text-gray-600">
+                      <strong>章节路径:</strong> {selectedCourse?.courseId}/{selectedItem?.chapterNumber}
+                    </p>
+                    <p className="text-sm text-gray-600 mt-2">
+                      <strong>课时数量:</strong> {selectedCourse?.fileSystemStructure?.chapters?.find(c => c.chapterNumber === selectedItem?.chapterNumber)?.lessons?.length || 0}
+                    </p>
+                  </div>
+                  
+                  <button
+                    onClick={saveChapterInfo}
+                    className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  >
+                    保存章节信息
+                  </button>
+                </div>
+              </>
+            ) : (
+              // Lesson Editor - Enhanced with metadata editing
+              <>
+                <div className="border-b border-gray-200 pb-4 mb-6">
+                  <h2 className="text-xl font-semibold text-gray-900">课时编辑</h2>
+                  <p className="text-gray-600 mt-1">编辑课时信息和内容</p>
+                </div>
+                
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">课时编号</label>
+                    <input
+                      type="text"
+                      value={selectedItem?.lessonNumber || ''}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-500 cursor-not-allowed"
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      内容权限
-                    </label>
-                    <select
-                      value={courseData.chapters.find(c => c.id === selectedItem.chapterId)?.lessons[selectedItem.lessonIndex]?.requiredRole || 'free'}
+                    <label className="block text-sm font-medium text-gray-700 mb-2">显示名称</label>
+                    <input
+                      type="text"
+                      value={lessonEditData.showName}
                       onChange={(e) => {
-                        const updatedData = { ...courseData }
-                        const chapter = updatedData.chapters.find(c => c.id === selectedItem.chapterId)
-                        if (chapter && chapter.lessons[selectedItem.lessonIndex]) {
-                          chapter.lessons[selectedItem.lessonIndex].requiredRole = e.target.value
-                          setCourseData(updatedData)
-                        }
+                        setLessonEditData(prev => ({
+                          ...prev,
+                          showName: e.target.value
+                        }))
                       }}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="free">免费 (Free)</option>
-                      <option value="vip">VIP会员</option>
-                      <option value="prime">Prime会员</option>
-                    </select>
-                    <span className="text-sm text-gray-600 mt-1 block">设置访问此课程所需的用户等级</span>
+                      placeholder="输入课时显示名称"
+                    />
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      视频上传
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">课时时长</label>
+                    <input
+                      type="text"
+                      value={lessonEditData.duration}
+                      onChange={(e) => {
+                        setLessonEditData(prev => ({
+                          ...prev,
+                          duration: e.target.value
+                        }))
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="例如: 30分钟"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">课时URL</label>
+                    <input
+                      type="text"
+                      value={lessonEditData.url}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-500 cursor-not-allowed"
+                      placeholder="课时访问URL（自动生成）"
+                    />
+                  </div>
+                  
+
+                  
+                  <div className="bg-gray-50 p-3 rounded-lg">
+                    <p className="text-sm text-gray-600">
+                      <strong>课时路径:</strong> {selectedCourse?.courseId}/{selectedItem?.chapterNumber}/{selectedItem?.lessonNumber}
+                    </p>
+                  </div>
+                  
+
+                  {/* 当前视频信息显示 */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">📹 当前视频</label>
+                    <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+                      <div>
+                        <span className="text-sm font-medium text-gray-600">Stream ID: </span>
+                        <span className="text-sm text-gray-800">
+                          {(() => {
+                            const lesson = selectedCourse?.fileSystemStructure?.chapters
+                              ?.find(c => c.chapterNumber === selectedItem?.chapterNumber)
+                              ?.lessons?.find(l => l.lessonNumber === selectedItem?.lessonNumber);
+                            return lesson?.streamId || '未设置';
+                          })()}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-600">URL: </span>
+                        <div className="text-sm text-gray-800 break-all">
+                          {(() => {
+                            const lesson = selectedCourse?.fileSystemStructure?.chapters
+                              ?.find(c => c.chapterNumber === selectedItem?.chapterNumber)
+                              ?.lessons?.find(l => l.lessonNumber === selectedItem?.lessonNumber);
+                            return lesson?.videoUrl || '未设置';
+                          })()}
+                        </div>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-600">Thumbnail: </span>
+                        <div className="text-sm text-gray-800 break-all">
+                          {(() => {
+                            const lesson = selectedCourse?.fileSystemStructure?.chapters
+                              ?.find(c => c.chapterNumber === selectedItem?.chapterNumber)
+                              ?.lessons?.find(l => l.lessonNumber === selectedItem?.lessonNumber);
+                            return lesson?.thumbnail || '未设置';
+                          })()}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* 视频上传区域 */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">课时视频</label>
                     <VideoUpload 
-                      lessonId={`${selectedItem.chapterId}-lesson${selectedItem.lessonIndex}`}
-                      onUploadComplete={(result) => {
-                        const updatedData = { ...courseData }
-                        const chapter = updatedData.chapters.find(c => c.id === selectedItem.chapterId)
-                        if (chapter && chapter.lessons[selectedItem.lessonIndex]) {
-                          chapter.lessons[selectedItem.lessonIndex].videoUrl = result.videoUrl
-                          chapter.lessons[selectedItem.lessonIndex].streamId = result.streamId
-                          chapter.lessons[selectedItem.lessonIndex].thumbnail = result.thumbnail
-                          setCourseData(updatedData)
-                        }
+                      lessonId={`${selectedItem?.chapterNumber}-${selectedItem?.lessonNumber}`}
+                      currentVideoUrl={(() => {
+                        const lesson = selectedCourse?.fileSystemStructure?.chapters
+                          ?.find(c => c.chapterNumber === selectedItem?.chapterNumber)
+                          ?.lessons?.find(l => l.lessonNumber === selectedItem?.lessonNumber);
+                        return lesson?.videoUrl || '';
+                      })()}
+                      currentStreamId={(() => {
+                        const lesson = selectedCourse?.fileSystemStructure?.chapters
+                          ?.find(c => c.chapterNumber === selectedItem?.chapterNumber)
+                          ?.lessons?.find(l => l.lessonNumber === selectedItem?.lessonNumber);
+                        return lesson?.streamId || '';
+                      })()}
+                      currentThumbnail={(() => {
+                        const lesson = selectedCourse?.fileSystemStructure?.chapters
+                          ?.find(c => c.chapterNumber === selectedItem?.chapterNumber)
+                          ?.lessons?.find(l => l.lessonNumber === selectedItem?.lessonNumber);
+                        return lesson?.thumbnail || '';
+                      })()}
+                      onUploadComplete={async (result) => {
+                        // 重新加载课程数据以刷新当前视频信息显示
+                        await loadCourses()
                       }}
-                      currentVideoUrl={courseData.chapters.find(c => c.id === selectedItem.chapterId)?.lessons[selectedItem.lessonIndex]?.videoUrl}
-                      currentStreamId={courseData.chapters.find(c => c.id === selectedItem.chapterId)?.lessons[selectedItem.lessonIndex]?.streamId}
-                      currentThumbnail={courseData.chapters.find(c => c.id === selectedItem.chapterId)?.lessons[selectedItem.lessonIndex]?.thumbnail}
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      课程内容 (MDX)
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">课时内容 (MDX)</label>
                     {loadingMdx ? (
                       <div className="w-full h-64 border border-gray-300 rounded-md flex items-center justify-center">
                         <div className="text-gray-500">加载中...</div>
@@ -787,26 +1717,13 @@ export default function AdminDashboard() {
                           rows={12}
                           value={mdxContent}
                           onChange={(e) => setMdxContent(e.target.value)}
-                          placeholder="在这里编辑课程内容...&#10;&#10;支持 Markdown 格式:&#10;**加粗文本**&#10;*斜体文本*&#10;## 标题&#10;- 列表项&#10;&#10;视频和标题信息已在上方管理，这里只需要编写课程的文字内容。"
+                          placeholder="在这里编辑课程内容...&#10;&#10;支持 Markdown 格式:&#10;**加粗文本**&#10;*斜体文本*&#10;## 标题&#10;- 列表项"
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
                         />
                         <div className="flex space-x-2">
                           <button
-                            onClick={async () => {
-                              const success = await save_mdx_content(selectedItem.chapterId, selectedItem.lessonIndex, mdxContent)
-                              if (success) {
-                                alert('MDX内容保存成功！')
-                              } else {
-                                alert('保存失败，请重试')
-                              }
-                            }}
-                            className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700"
-                          >
-                            保存MDX内容
-                          </button>
-                          <button
                             onClick={() => {
-                              load_mdx_content(selectedItem.chapterId, selectedItem.lessonIndex)
+                              load_mdx_content(selectedItem.chapterNumber, selectedItem.lessonNumber)
                             }}
                             className="px-3 py-1 bg-gray-600 text-white text-sm rounded hover:bg-gray-700"
                           >
@@ -815,38 +1732,31 @@ export default function AdminDashboard() {
                         </div>
                       </div>
                     )}
-                    <div className="text-xs text-gray-500 mt-1">
-                      支持Markdown格式，标题和视频信息由系统管理。文件将保存到: course/{selectedItem?.chapterId}/lesson{(selectedItem?.lessonIndex || 0) + 1}/index.mdx
-                    </div>
                   </div>
+                  
+                  <button
+                    onClick={saveLessonInfo}
+                    className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  >
+                    保存课时信息
+                  </button>
                 </div>
               </>
             )}
-            
-            <div className="flex space-x-4 mt-8 pt-6 border-t border-gray-200">
-              <button 
-                onClick={saveCourseData}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-              >
-                保存更改
-              </button>
-              <button 
-                onClick={() => setSelectedItem(null)}
-                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
-              >
-                关闭编辑
-              </button>
-            </div>
           </div>
         ) : (
           <div className="flex items-center justify-center h-full text-gray-500">
             <div className="text-center">
-              <p className="text-lg mb-2">选择章节或课程开始编辑</p>
-              <p className="text-sm">点击左侧的章节或课程项目来编辑内容</p>
+              <Settings className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+              <p className="text-lg mb-2">选择项目开始编辑</p>
+              <p className="text-sm">点击左侧的课程、章节或课时来编辑内容</p>
             </div>
           </div>
         )}
       </div>
+
+      {/* Course Creation Modal */}
+      <CourseModal />
     </div>
   )
 }

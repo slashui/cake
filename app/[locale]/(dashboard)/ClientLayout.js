@@ -1,12 +1,17 @@
 // ClientLayout.js
 'use client'
 import { useState } from 'react'
+import { usePathname } from 'next/navigation'
 import Aside from '@/components/Aside'
 import Providers from '@/libs/themes/providers'
 
 export default function ClientLayout({ children, params }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const locale = params.locale
+  const pathname = usePathname()
+  
+  // 检查是否是课程详情页面
+  const isCourseDetailPage = pathname && /\/course\/[^\/]+\/[^\/]+/.test(pathname)
 
   return (
     <Providers>
@@ -48,21 +53,32 @@ export default function ClientLayout({ children, params }) {
           />
         )}
 
-        {/* 侧边栏 */}
-        <div className={`
-          fixed md:relative md:w-[330px] w-[280px] h-screen z-40
-          transition-transform duration-300 ease-in-out
-          md:translate-x-0
-          ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
-        `}>
-          <Aside locale={locale} />
-        </div>
+        {/* 侧边栏 - 在课程详情页隐藏 */}
+        {!isCourseDetailPage && (
+          <div className={`
+            fixed md:relative md:w-[330px] w-[280px] h-screen z-40
+            transition-transform duration-300 ease-in-out
+            md:translate-x-0
+            ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+          `}>
+            <Aside locale={locale} />
+          </div>
+        )}
 
         {/* 主内容区域 */}
-        <div className="flex-1 overflow-auto h-screen w-full bg-neutral-bg dark:bg-dark-neutral-bg">
-          <div className="overflow-x-scroll scrollbar-hide flex markdown flex-col dark:bg-[#d9cfff] bg-gray-100 justify-between pt-[42px] px-[23px] pb-[28px]">
-            {children}
-          </div>
+        <div className={`
+          flex-1 overflow-auto h-screen w-full bg-neutral-bg dark:bg-dark-neutral-bg
+          ${isCourseDetailPage ? 'w-full' : ''}
+        `}>
+          {isCourseDetailPage ? (
+            // 课程页面：直接显示内容，不加额外的容器样式
+            children
+          ) : (
+            // 普通页面：使用原来的样式
+            <div className="overflow-x-scroll scrollbar-hide flex markdown flex-col dark:bg-[#d9cfff] bg-gray-100 justify-between pt-[42px] px-[23px] pb-[28px]">
+              {children}
+            </div>
+          )}
         </div>
       </div>
     </Providers>

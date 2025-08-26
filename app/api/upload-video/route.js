@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { updateLessonMetadata } from '../../../libs/courseFileSystem'
 
 export async function POST(request) {
     try {
@@ -59,13 +60,44 @@ export async function POST(request) {
             
             // 作为后备，我们返回一个模拟的URL
             const timestamp = Date.now()
-            const mockVideoUrl = `https://customer-${cfAccountId}.cloudflarestream.com/${timestamp}/manifest/video.m3u8`
+            const mockStreamId = `mock-${timestamp}`
+            const mockVideoUrl = `https://customer-${cfAccountId}.cloudflarestream.com/${mockStreamId}/manifest/video.m3u8`
+            const mockThumbnailUrl = `https://customer-${cfAccountId}.cloudflarestream.com/${mockStreamId}/thumbnails/thumbnail.jpg`
             console.log('Using mock URL for development:', mockVideoUrl)
+            
+            // 解析lessonId获取courseId, chapterNumber, lessonNumber
+            let courseId, chapterNumber, lessonNumber
+            
+            if (lessonId.includes('/')) {
+                const [course, lesson] = lessonId.split('/')
+                courseId = course
+                const [chapter, lessonNum] = lesson.split('-')
+                chapterNumber = chapter
+                lessonNumber = lessonNum
+            } else {
+                courseId = '11'
+                const [chapter, lessonNum] = lessonId.split('-')
+                chapterNumber = chapter
+                lessonNumber = lessonNum
+            }
+
+            // 更新lesson的metadata.json (mock模式)
+            try {
+                await updateLessonMetadata(courseId, chapterNumber, lessonNumber, {
+                    videoUrl: mockVideoUrl,
+                    streamId: mockStreamId,
+                    thumbnail: mockThumbnailUrl
+                })
+                console.log(`✅ 已更新lesson metadata (mock): ${courseId}/${chapterNumber}/${lessonNumber}`)
+            } catch (error) {
+                console.error('❌ 更新lesson metadata失败 (mock):', error)
+            }
             
             return NextResponse.json({
                 success: true,
                 videoUrl: mockVideoUrl,
-                streamId: `mock-${timestamp}`,
+                streamId: mockStreamId,
+                thumbnail: mockThumbnailUrl,
                 message: 'Video uploaded successfully (development mode)'
             })
         }
@@ -79,12 +111,45 @@ export async function POST(request) {
         // 构建CloudFlare Stream播放URL
         const streamId = result.result.uid
         const playbackUrl = `https://customer-${cfAccountId}.cloudflarestream.com/${streamId}/manifest/video.m3u8`
+        const thumbnailUrl = `https://customer-${cfAccountId}.cloudflarestream.com/${streamId}/thumbnails/thumbnail.jpg`
+
+        // 解析lessonId获取courseId, chapterNumber, lessonNumber
+        // lessonId格式: "courseId/chapterNumber-lessonNumber" 或 "chapterNumber-lessonNumber"
+        let courseId, chapterNumber, lessonNumber
+        
+        if (lessonId.includes('/')) {
+            // 格式: "courseId/chapterNumber-lessonNumber"
+            const [course, lesson] = lessonId.split('/')
+            courseId = course
+            const [chapter, lessonNum] = lesson.split('-')
+            chapterNumber = chapter
+            lessonNumber = lessonNum
+        } else {
+            // 格式: "chapterNumber-lessonNumber" (默认courseId为'11')
+            courseId = '11'
+            const [chapter, lessonNum] = lessonId.split('-')
+            chapterNumber = chapter
+            lessonNumber = lessonNum
+        }
+
+        // 更新lesson的metadata.json
+        try {
+            await updateLessonMetadata(courseId, chapterNumber, lessonNumber, {
+                videoUrl: playbackUrl,
+                streamId: streamId,
+                thumbnail: thumbnailUrl
+            })
+            console.log(`✅ 已更新lesson metadata: ${courseId}/${chapterNumber}/${lessonNumber}`)
+        } catch (error) {
+            console.error('❌ 更新lesson metadata失败:', error)
+            // 不影响上传成功的返回，只记录错误
+        }
 
         return NextResponse.json({
             success: true,
             videoUrl: playbackUrl,
             streamId: streamId,
-            thumbnail: `https://customer-${cfAccountId}.cloudflarestream.com/${streamId}/thumbnails/thumbnail.jpg`,
+            thumbnail: thumbnailUrl,
             message: 'Video uploaded successfully to CloudFlare Stream'
         })
 

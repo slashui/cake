@@ -53,6 +53,7 @@ This is a Next.js 14 SaaS platform with internationalization, featuring a course
 - **Account**: NextAuth account linking
 - **Waitlist**: Pre-launch user collection
 - **orderlist**: Purchase tracking and transaction history
+- **Course/Chapter/Lesson**: Hierarchical course content structure with role-based access
 
 ### Key Components
 - **Course system**: MDX-based lessons organized by chapters with video integration

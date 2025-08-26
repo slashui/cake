@@ -1,7 +1,10 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import VideoPlayer from '@/components/VideoPlayer'
 import CourseHeader from '@/components/CourseHeader'
+import CourseSidebar from '@/components/CourseSidebar'
 import { MDXRemote } from 'next-mdx-remote'
+import { serialize } from 'next-mdx-remote/serialize'
+import matter from 'gray-matter'
 import CloudflarePlayer from '@/components/CloudflarePlayer'
 
 const components = {
@@ -17,61 +20,158 @@ const components = {
 }
 
 const CourseTemplate = ({ 
-  chapterId, 
-  lessonUrl, 
-  content,  // markdown内容
-  frontmatter, // markdown的元数据
-  currentLesson // 从course.json获取的课程信息，包含videoUrl, streamId, thumbnail
+  courseId,
+  courseData,
+  chapterNumber, 
+  lessonNumber,
+  currentChapter,
+  currentLesson,
+  lessonContent,  // 原始MDX字符串
+  locale
 }) => {
-  // 调试信息
-  console.log('CourseTemplate received currentLesson:', currentLesson);
+  const [mdxSource, setMdxSource] = useState(null)
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [frontmatterData, setFrontmatterData] = useState(null)
+  
+  console.log('CourseTemplate received:', { courseId, chapterNumber, lessonNumber, currentLesson });
+  console.log('frontmatterData:', frontmatterData);
+  console.log('videoUrl from frontmatter:', frontmatterData?.videoUrl);
+  console.log('videoUrl from currentLesson:', currentLesson?.videoUrl);
+
+  // 处理MDX内容
+  useEffect(() => {
+    if (lessonContent) {
+      setIsProcessing(true)
+      
+      // 检查是否是服务端预处理的数据
+      if (typeof lessonContent === 'object' && lessonContent.processed) {
+        // 使用服务端预处理的数据
+        setMdxSource(lessonContent.mdxSource)
+        setFrontmatterData(lessonContent.frontmatter)
+        setIsProcessing(false)
+      } else if (typeof lessonContent === 'string') {
+        // 客户端处理（回退方案）
+        try {
+          // 使用gray-matter解析frontmatter
+          const { data: frontmatter, content } = matter(lessonContent)
+          console.log('Parsed frontmatter with gray-matter:', frontmatter)
+          
+          // 序列化内容
+          serialize(content)
+            .then((result) => {
+              setMdxSource(result)
+              setFrontmatterData(frontmatter)
+            })
+            .catch(console.error)
+            .finally(() => setIsProcessing(false))
+        } catch (error) {
+          console.error('Error parsing MDX:', error)
+          setIsProcessing(false)
+        }
+      } else {
+        setMdxSource(null)
+        setFrontmatterData(null)
+        setIsProcessing(false)
+      }
+    } else {
+      setMdxSource(null)
+      setFrontmatterData(null)
+      setIsProcessing(false)
+    }
+  }, [lessonContent])
+  
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+
+  console.log('Mobile menu state:', isMobileMenuOpen)
+
   return (
-    <div className="w-[85%] mx-auto py-8 px-4">
-       <CourseHeader chapterId={chapterId} lessonUrl={lessonUrl} />
+    <div className="flex min-h-screen bg-gray-50">
+      {/* 移动端遮罩层 */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-[45] lg:hidden"
+          onClick={() => {
+            console.log('Overlay clicked, closing menu')
+            setIsMobileMenuOpen(false)
+          }}
+        />
+      )}
+      
+      {/* 左侧导航 */}
+      <div className={`
+        fixed lg:relative lg:w-80 w-80 h-screen z-[55]
+        transition-transform duration-300 ease-in-out
+        lg:translate-x-0
+        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}>
+        <CourseSidebar 
+          courseId={courseId}
+          courseData={courseData}
+          currentChapter={chapterNumber}
+          currentLesson={lessonNumber}
+          locale={locale}
+          onClose={() => setIsMobileMenuOpen(false)}
+        />
+      </div>
+      
+      {/* 主内容区 */}
+      <div className="flex-1 overflow-auto lg:ml-0">
+        {/* 移动端菜单按钮 */}
+        <div className="lg:hidden fixed top-4 left-4 z-[60]">
+          <button
+            onClick={() => {
+              console.log('Menu button clicked, current state:', isMobileMenuOpen)
+              setIsMobileMenuOpen(true)
+            }}
+            className="p-2 bg-white rounded-lg shadow-lg border border-gray-200 hover:bg-gray-50"
+          >
+            <svg className="w-6 h-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        </div>
+        
+        <div className="max-w-6xl mx-auto py-8 px-6">
+          <CourseHeader 
+            courseData={courseData}
+            currentChapter={currentChapter}
+            currentLesson={currentLesson}
+            locale={locale}
+          />
 
-<div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-  <div className="aspect-w-16 aspect-h-9 mb-8">
-    <div className="w-full bg-gray-100 rounded-lg">
-      <CloudflarePlayer 
-        videoUrl={currentLesson?.videoUrl} 
-        streamId={currentLesson?.streamId}
-        thumbnail={currentLesson?.thumbnail}
-      />
-    </div>
-  </div>
-
-  <div className="prose max-w-none">
-    <MDXRemote 
-      {...content} 
-      components={components}
-      scope={frontmatter}
-    />
-  </div>
-
-        {/* 下载资源部分 */}
-        {frontmatter.downloads && (
-          <div className="mt-8">
-            <h2 className="text-xl font-bold mb-4">课程资料</h2>
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <ul className="space-y-2">
-                {frontmatter.downloads.map((item, index) => (
-                  <li key={index} className="flex items-center gap-2">
-                    <svg className="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                    </svg>
-                    <a 
-                      href={item.file}
-                      download
-                      className="text-blue-600 hover:underline cursor-pointer"
-                    >
-                      {item.name}
-                    </a>
-                  </li>
-                ))}
-              </ul>
+          <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <div className="aspect-w-16 aspect-h-9 mb-8">
+              <div className="w-full bg-gray-100 rounded-lg">
+                <CloudflarePlayer 
+                  videoUrl={currentLesson?.videoUrl} 
+                  streamId={currentLesson?.streamId}
+                  thumbnail={currentLesson?.thumbnail}
+                />
+              </div>
             </div>
+
+            {isProcessing ? (
+              <div className="prose max-w-none">
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                  <span className="ml-2">加载课程内容...</span>
+                </div>
+              </div>
+            ) : mdxSource ? (
+              <div className="prose max-w-none">
+                <MDXRemote 
+                  {...mdxSource} 
+                  components={components}
+                />
+              </div>
+            ) : lessonContent ? (
+              <div className="prose max-w-none">
+                <div className="text-red-600">MDX内容处理出错</div>
+              </div>
+            ) : null}
+
           </div>
-        )}
+        </div>
       </div>
     </div>
   )

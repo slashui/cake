@@ -1,0 +1,77 @@
+{
+  "courseId": "11",
+  "title": "11",
+  "description": "",
+  "price": null,
+  "category": "",
+  "status": "DRAFT",
+  "createdAt": "2025-08-25T05:51:24.829Z",
+  "structure": {
+    "chapters": [
+      {
+        "chapterNumber": "chapter1",
+        "showName": "嗯嗯",
+        "description": "嗯嗯呃呃",
+        "status": "DRAFT",
+        "requiredRole": "FREE",
+        "order": 1,
+        "createdAt": "2025-08-25T08:08:48.665Z",
+        "updatedAt": "2025-08-26T07:31:34.321Z",
+        "lessons": [
+          {
+            "lessonNumber": "lesson1",
+            "showName": "第一课",
+            "duration": "20分钟",
+            "url": "/cn/course/chapter1/lesson1",
+            "requiredRole": "FREE",
+            "order": 1,
+            "createdAt": "2025-08-25T08:08:48.666Z",
+            "updatedAt": "2025-08-26T08:00:21.213Z",
+            "videoUrl": "https://customer-0e422c62fd0877137d57cead3f42415f.cloudflarestream.com/2ff36c1e08e443a39d2a3779a911c1f5/manifest/video.m3u8",
+            "streamId": "2ff36c1e08e443a39d2a3779a911c1f5",
+            "thumbnail": "https://customer-0e422c62fd0877137d57cead3f42415f.cloudflarestream.com/2ff36c1e08e443a39d2a3779a911c1f5/thumbnails/thumbnail.jpg"
+          }
+        ]
+      },
+      {
+        "chapterNumber": "chapter2",
+        "showName": "第二章",
+        "description": "讲的啥",
+        "status": "DRAFT",
+        "requiredRole": "FREE",
+        "order": 2,
+        "createdAt": "2025-08-26T04:48:48.592Z",
+        "updatedAt": "2025-08-26T07:32:03.639Z",
+        "lessons": [
+          {
+            "lessonNumber": "lesson1",
+            "showName": "新课时111",
+            "duration": "11分钟",
+            "url": "/cn/course/chapter2/lesson1",
+            "requiredRole": "FREE",
+            "order": 1,
+            "createdAt": "2025-08-26T04:48:55.758Z",
+            "updatedAt": "2025-08-26T08:20:53.066Z",
+            "videoUrl": "https://customer-0e422c62fd0877137d57cead3f42415f.cloudflarestream.com/2c53765e04ae4e059de64c9edf83f0f6/manifest/video.m3u8",
+            "streamId": "2c53765e04ae4e059de64c9edf83f0f6",
+            "thumbnail": "https://customer-0e422c62fd0877137d57cead3f42415f.cloudflarestream.com/2c53765e04ae4e059de64c9edf83f0f6/thumbnails/thumbnail.jpg"
+          },
+          {
+            "lessonNumber": "lesson2",
+            "showName": "新课时",
+            "duration": "30分钟",
+            "url": "/cn/course/chapter2/lesson2",
+            "requiredRole": "FREE",
+            "order": 2,
+            "createdAt": "2025-08-26T04:49:09.179Z",
+            "updatedAt": "2025-08-26T08:45:53.951Z",
+            "videoUrl": "https://customer-0e422c62fd0877137d57cead3f42415f.cloudflarestream.com/a8eedf9aab794872822a769007a6856e/manifest/video.m3u8",
+            "streamId": "a8eedf9aab794872822a769007a6856e",
+            "thumbnail": "https://customer-0e422c62fd0877137d57cead3f42415f.cloudflarestream.com/a8eedf9aab794872822a769007a6856e/thumbnails/thumbnail.jpg"
+          }
+        ]
+      }
+    ]
+  },
+  "updatedAt": "2025-08-26T08:45:53.952Z"
+}
