@@ -3,6 +3,10 @@ const nextConfig = {
   env: {
     _next_intl_trailing_slash: '1'
   },
+  swcMinify: false,
+  experimental: {
+    swcPlugins: []
+  },
   webpack: (config) => {
     config.module.rules.push({
       test: /\.html$/,
