@@ -59,6 +59,9 @@
     "typed.js": "^2.1.0"
   },
   "devDependencies": {
+    "@babel/core": "^7.23.0",
+    "@babel/preset-env": "^7.23.0",
+    "@babel/preset-react": "^7.23.0",
     "@types/react": "^18.2.46",
     "autoprefixer": "^10.0.1",
     "eslint": "^8",
