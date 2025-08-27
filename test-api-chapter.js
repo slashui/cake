@@ -9,8 +9,8 @@ async function testChapterCreationAPI() {
   const chapterNumber = `chapter${Date.now()}`; // 生成唯一的章节号
   
   try {
-    // 导入courseFileSystem模块
-    const { createChapterDirectory, getCourseMetadata, updateCourseMetadata } = require('./libs/courseFileSystem.js');
+    // 导入courseFileSystem模块 (使用动态import)
+    const { createChapterDirectory, getCourseMetadata, updateCourseMetadata } = await import('./libs/courseFileSystem.js');
     
     console.log('准备创建章节:', chapterNumber);
     console.log('课程ID:', courseId);

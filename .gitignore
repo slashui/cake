@@ -67,3 +67,6 @@ jspm_packages/
 # Temporary folders
 tmp/
 temp/
+
+# Course content directories
+app/[locale]/(dashboard)/(route)/course/
