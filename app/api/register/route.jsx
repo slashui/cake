@@ -26,10 +26,11 @@ export async function POST(request){
     // 验证邀请码（如果提供）
     let inviteCodeData = null;
     if (inviteCode) {
+        const codeToSearch = inviteCode.trim().toUpperCase();
         inviteCodeData = await prisma.inviteCode.findUnique({
-            where: { code: inviteCode },
+            where: { code: codeToSearch },
             include: {
-                inviteCodeCourses: {
+                courses: {
                     include: {
                         course: true
                     }
@@ -51,7 +52,20 @@ export async function POST(request){
             )
         }
 
+        if (inviteCodeData.status === 'EXPIRED') {
+            return NextResponse.json(
+                { success: false, message: '邀请码已过期' },
+                { status: 400 }
+            )
+        }
+
         if (inviteCodeData.expiresAt && new Date() > inviteCodeData.expiresAt) {
+            // 自动标记为过期
+            await prisma.inviteCode.update({
+                where: { id: inviteCodeData.id },
+                data: { status: 'EXPIRED' }
+            });
+            
             return NextResponse.json(
                 { success: false, message: '邀请码已过期' },
                 { status: 400 }
@@ -94,17 +108,30 @@ export async function POST(request){
                 }
             });
 
-            // 如果有邀请码，关联课程
-            if (inviteCodeData && inviteCodeData.inviteCodeCourses.length > 0) {
-                const userCourseData = inviteCodeData.inviteCodeCourses.map(icc => ({
-                    userId: user.id,
-                    courseId: icc.courseId,
-                    grantedAt: new Date()
-                }));
-
-                await tx.userCourse.createMany({
-                    data: userCourseData
+            // 如果有邀请码，关联课程并标记邀请码为已使用
+            if (inviteCodeData) {
+                // 标记邀请码为已使用
+                await tx.inviteCode.update({
+                    where: { id: inviteCodeData.id },
+                    data: {
+                        status: 'USED',
+                        usedAt: new Date(),
+                        usedBy: user.id
+                    }
                 });
+
+                // 关联课程
+                if (inviteCodeData.courses.length > 0) {
+                    const userCourseData = inviteCodeData.courses.map(icc => ({
+                        userId: user.id,
+                        courseId: icc.courseId,
+                        grantedAt: new Date()
+                    }));
+
+                    await tx.userCourse.createMany({
+                        data: userCourseData
+                    });
+                }
             }
 
             return user;

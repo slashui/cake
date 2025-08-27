@@ -3,22 +3,34 @@ import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
+// 确保在处理结束后关闭连接
+const closeDbConnection = async () => {
+  await prisma.$disconnect()
+}
+
 // POST - 验证邀请码
 export async function POST(request) {
   try {
-    const { code } = await request.json()
+    const body = await request.json()
+    const { code } = body
 
-    if (!code) {
+    console.log('验证邀请码请求:', { code })
+
+    if (!code || !code.trim()) {
+      console.log('邀请码为空')
       return NextResponse.json(
         { error: '邀请码不能为空' },
         { status: 400 }
       )
     }
 
+    const codeToSearch = code.trim().toUpperCase()
+    console.log('搜索邀请码:', codeToSearch)
+
     // 查找邀请码
     const inviteCode = await prisma.inviteCode.findUnique({
       where: {
-        code: code.toUpperCase()
+        code: codeToSearch
       },
       include: {
         courses: {
@@ -36,7 +48,10 @@ export async function POST(request) {
       }
     })
 
+    console.log('查找到的邀请码:', inviteCode ? { id: inviteCode.id, code: inviteCode.code, status: inviteCode.status } : null)
+
     if (!inviteCode) {
+      console.log('邀请码不存在')
       return NextResponse.json(
         { error: '邀请码不存在' },
         { status: 404 }
@@ -45,6 +60,7 @@ export async function POST(request) {
 
     // 检查邀请码状态
     if (inviteCode.status === 'USED') {
+      console.log('邀请码已被使用')
       return NextResponse.json(
         { error: '此邀请码已经被使用过' },
         { status: 400 }
@@ -52,6 +68,7 @@ export async function POST(request) {
     }
 
     if (inviteCode.status === 'EXPIRED') {
+      console.log('邀请码已过期(状态)')
       return NextResponse.json(
         { error: '此邀请码已过期' },
         { status: 400 }
@@ -60,6 +77,7 @@ export async function POST(request) {
 
     // 检查是否过期
     if (inviteCode.expiresAt && new Date() > inviteCode.expiresAt) {
+      console.log('邀请码已过期(时间)', { expiresAt: inviteCode.expiresAt, now: new Date() })
       // 更新状态为过期
       await prisma.inviteCode.update({
         where: { id: inviteCode.id },
@@ -72,6 +90,7 @@ export async function POST(request) {
       )
     }
 
+    console.log('邀请码验证成功')
     // 返回验证成功的信息和关联的课程
     return NextResponse.json({
       valid: true,
@@ -83,8 +102,9 @@ export async function POST(request) {
     })
   } catch (error) {
     console.error('验证邀请码失败:', error)
+    console.error('Error stack:', error.stack)
     return NextResponse.json(
-      { error: '验证邀请码失败' },
+      { error: '验证邀请码失败: ' + error.message },
       { status: 500 }
     )
   }
@@ -102,10 +122,12 @@ export async function PUT(request) {
       )
     }
 
+    const codeToSearch = code.trim().toUpperCase()
+
     // 查找邀请码
     const inviteCode = await prisma.inviteCode.findUnique({
       where: {
-        code: code.toUpperCase()
+        code: codeToSearch
       },
       include: {
         courses: {

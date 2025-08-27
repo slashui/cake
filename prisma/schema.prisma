@@ -8,23 +8,23 @@ datasource db {
 }
 
 model User {
-  id             String       @id @default(cuid())
-  name           String?
-  email          String?      @unique
-  emailVerified  DateTime?
-  image          String?
-  hashedPassword String?
-  homepage       String?
-  aboutyou       String?
-  githubname     String?
-  twittername    String?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  role           UserRole     @default(FREE)
-  accounts       Account[]
-  userCourses    UserCourse[]
-  usedInviteCodes InviteCode[]
+  id                 String       @id @default(cuid())
+  name               String?
+  email              String?      @unique
+  emailVerified      DateTime?
+  image              String?
+  hashedPassword     String?
+  homepage           String?
+  aboutyou           String?
+  githubname         String?
+  twittername        String?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  role               UserRole     @default(FREE)
+  accounts           Account[]
   createdInviteCodes InviteCode[] @relation("CreatedInviteCodes")
+  usedInviteCodes    InviteCode[]
+  userCourses        UserCourse[]
 }
 
 model Account {
@@ -66,18 +66,18 @@ model orderlist {
 }
 
 model Course {
-  id          String       @id @default(cuid())
-  title       String
-  description String?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  category    String?
-  courseId    String       @unique
-  price       Float?
-  status      CourseStatus @default(DRAFT)
-  thumbnail   String?
-  userCourses UserCourse[]
+  id                String             @id @default(cuid())
+  title             String
+  description       String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  category          String?
+  courseId          String             @unique
+  price             Float?
+  status            CourseStatus       @default(DRAFT)
+  thumbnail         String?
   inviteCodeCourses InviteCodeCourse[]
+  userCourses       UserCourse[]
 }
 
 model UserCourse {
@@ -91,40 +91,41 @@ model UserCourse {
   @@unique([userId, courseId])
 }
 
-enum UserRole {
-  FREE
-  PRIME
-  VIP
-}
-
-enum CourseStatus {
-  DRAFT
-  PUBLISHED
-  ARCHIVED
-}
-
 model InviteCode {
-  id          String            @id @default(cuid())
-  code        String            @unique
-  status      InviteCodeStatus  @default(UNUSED)
-  createdAt   DateTime          @default(now())
-  usedAt      DateTime?
-  usedBy      String?
-  expiresAt   DateTime?
-  createdBy   String
-  courses     InviteCodeCourse[]
-  user        User?             @relation(fields: [usedBy], references: [id])
-  creator     User              @relation("CreatedInviteCodes", fields: [createdBy], references: [id])
+  id        String             @id @default(cuid())
+  code      String             @unique
+  status    InviteCodeStatus   @default(UNUSED)
+  createdAt DateTime           @default(now())
+  usedAt    DateTime?
+  usedBy    String?
+  expiresAt DateTime?
+  createdBy String
+  creator   User               @relation("CreatedInviteCodes", fields: [createdBy], references: [id])
+  user      User?              @relation(fields: [usedBy], references: [id])
+  courses   InviteCodeCourse[]
 }
 
 model InviteCodeCourse {
   id           String     @id @default(cuid())
   inviteCodeId String
   courseId     String
-  inviteCode   InviteCode @relation(fields: [inviteCodeId], references: [id], onDelete: Cascade)
   course       Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  inviteCode   InviteCode @relation(fields: [inviteCodeId], references: [id], onDelete: Cascade)
 
   @@unique([inviteCodeId, courseId])
+}
+
+enum UserRole {
+  FREE
+  PRIME
+  VIP
+  ADMIN
+}
+
+enum CourseStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
 }
 
 enum InviteCodeStatus {

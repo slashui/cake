@@ -1,0 +1,81 @@
+{
+  "title": "第一门课程",
+  "description": "第一门课程详情等等",
+  "price": null,
+  "category": "",
+  "status": "DRAFT",
+  "createdAt": "2025-08-27T07:18:16.240Z",
+  "chapters": [],
+  "structure": {
+    "chapters": [
+      {
+        "chapterNumber": "chapter1",
+        "showName": "第一章",
+        "description": "",
+        "status": "DRAFT",
+        "requiredRole": "FREE",
+        "order": 1,
+        "createdAt": "2025-08-27T07:18:23.312Z",
+        "updatedAt": "2025-08-27T07:29:33.443Z",
+        "lessons": [
+          {
+            "lessonNumber": "lesson1",
+            "showName": "新课时",
+            "duration": "30分钟",
+            "url": "/cn/course/chapter1/lesson1",
+            "requiredRole": "FREE",
+            "order": 1,
+            "createdAt": "2025-08-27T07:29:38.514Z",
+            "updatedAt": "2025-08-27T07:29:38.514Z"
+          },
+          {
+            "lessonNumber": "lesson2",
+            "showName": "第二课",
+            "duration": "30分钟",
+            "url": "/cn/course/chapter1/lesson2",
+            "requiredRole": "FREE",
+            "order": 2,
+            "createdAt": "2025-08-27T07:39:26.435Z",
+            "updatedAt": "2025-08-27T07:39:39.125Z",
+            "videoUrl": ""
+          }
+        ]
+      },
+      {
+        "chapterNumber": "chapter2",
+        "showName": "chapter2",
+        "description": "",
+        "status": "DRAFT",
+        "requiredRole": "FREE",
+        "order": 2,
+        "createdAt": "2025-08-27T07:39:44.517Z",
+        "updatedAt": "2025-08-27T07:39:44.517Z",
+        "lessons": [
+          {
+            "lessonNumber": "lesson1",
+            "showName": "第二章第一课",
+            "duration": "30分钟",
+            "url": "/cn/course/chapter2/lesson1",
+            "requiredRole": "FREE",
+            "order": 1,
+            "createdAt": "2025-08-27T07:39:58.163Z",
+            "updatedAt": "2025-08-27T07:43:19.611Z",
+            "videoUrl": ""
+          },
+          {
+            "lessonNumber": "lesson2",
+            "showName": "cool",
+            "duration": "30分钟",
+            "url": "/cn/course/chapter2/lesson2",
+            "requiredRole": "FREE",
+            "order": 2,
+            "createdAt": "2025-08-27T07:43:46.288Z",
+            "updatedAt": "2025-08-27T07:43:56.463Z",
+            "videoUrl": ""
+          }
+        ]
+      }
+    ]
+  },
+  "updatedAt": "2025-08-27T08:04:28.923Z"
+}

@@ -15,7 +15,7 @@ export async function createCourseDirectory(courseId, courseData) {
     fs.mkdirSync(coursePath, { recursive: true })
   }
   
-  // 创建 metadata.json
+  // 创建 metadata.json with default chapter1
   const metadata = {
     title: courseData.title,
     description: courseData.description,
@@ -24,11 +24,32 @@ export async function createCourseDirectory(courseId, courseData) {
     category: courseData.category,
     status: courseData.status,
     createdAt: new Date().toISOString(),
-    chapters: []
+    chapters: [],
+    structure: {
+      chapters: [
+        {
+          chapterNumber: "chapter1",
+          showName: "第一章",
+          description: "",
+          status: "DRAFT",
+          requiredRole: "FREE",
+          order: 1,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          lessons: []
+        }
+      ]
+    }
   }
   
   const metadataPath = path.join(coursePath, 'metadata.json')
   fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2))
+  
+  // 创建默认的 chapter1 目录
+  const chapter1Path = path.join(coursePath, 'chapter1')
+  if (!fs.existsSync(chapter1Path)) {
+    fs.mkdirSync(chapter1Path, { recursive: true })
+  }
   
   return coursePath
 }
@@ -450,14 +471,13 @@ export async function getCourseStructure(courseId) {
         }
       }
       
-      if (lessons.length > 0) {
-        structure.chapters.push({
-          chapterNumber: chapterData.chapterNumber,
-          title: chapterData.showName || chapterData.title || chapterData.chapterNumber,
-          description: chapterData.description || '',
-          lessons: lessons.sort((a, b) => a.lessonNumber.localeCompare(b.lessonNumber))
-        })
-      }
+      // Always add chapter to structure, even if it has no lessons
+      structure.chapters.push({
+        chapterNumber: chapterData.chapterNumber,
+        title: chapterData.showName || chapterData.title || chapterData.chapterNumber,
+        description: chapterData.description || '',
+        lessons: lessons.sort((a, b) => a.lessonNumber.localeCompare(b.lessonNumber))
+      })
     }
     
     // 缓存结果

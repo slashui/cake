@@ -18,6 +18,7 @@ export default function Register() {
         user_level: 'VIP', // 默认选择VIP
         inviteCode: '' // 邀请码字段
     })
+    const [isLoading, setIsLoading] = useState(false)
     useEffect(() => {
         setLang(document.documentElement.lang);
         // 获取 URL 参数中的 email
@@ -39,46 +40,46 @@ export default function Register() {
             return;
         }
         
+        if (isLoading) return; // 防止重复提交
+        
+        setIsLoading(true)
         try {
             // 先验证邀请码
             const verifyResponse = await axios.post('/api/invite-codes/verify', {
                 code: data.inviteCode
             });
             
-            if (!verifyResponse.data.success) {
-                toast.error(verifyResponse.data.message || '邀请码验证失败');
+            if (!verifyResponse.data.valid) {
+                toast.error(verifyResponse.data.error || '邀请码验证失败');
                 return;
             }
             
             const registerData = {
                 ...data,
-                name: 'user_' + Math.random().toString(36).substr(2, 8) // 生成随机用户名
+                name: 'user_' + Math.random().toString(36).substr(2, 8), // 生成随机用户名
+                inviteCode: data.inviteCode // 确保邀请码传递给注册API
             };
             
-            // 注册用户
+            // 注册用户 (注册API会自动处理邀请码的使用和课程关联)
             const registerResponse = await axios.post('/api/register', registerData);
             
             if (registerResponse.data.success) {
-                // 标记邀请码为已使用
-                await axios.put('/api/invite-codes/verify', {
-                    code: data.inviteCode,
-                    userId: registerResponse.data.user.id
-                });
-                
                 toast.success('注册成功！正在跳转到登录页面...');
                 setTimeout(() => {
                     router.push(`/${lang}/login`);
-                }, 3000);
+                }, 2000);
             }
             
         } catch (error) {
             console.error('Registration error:', error);
 
             if (error.response && error.response.data) {
-                toast.error(error.response.data.message || '注册失败');
+                toast.error(error.response.data.message || error.response.data.error || '注册失败');
             } else {
                 toast.error('注册过程中出现错误，请稍后重试');
             }
+        } finally {
+            setIsLoading(false)
         }
     }
 
@@ -184,10 +185,11 @@ export default function Register() {
 
                             <button
                                 type="submit"
-                                className="w-full bg-[#845eee] py-3 px-6 text-white font-medium  hover:bg-[#845eee]/90 rounded-lg transition-colors duration-200 "
-                                style={{ backgroundColor: '#845eee' }}
+                                disabled={isLoading}
+                                className="w-full bg-[#845eee] py-3 px-6 text-white font-medium hover:bg-[#845eee]/90 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                style={{ backgroundColor: isLoading ? '#6b46c1' : '#845eee' }}
                             >
-                                {t("Ten")}
+                                {isLoading ? '注册中...' : t("Ten")}
                             </button>
                         </form>
                     </div>

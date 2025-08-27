@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
 import { 
   ChevronDown, 
   ChevronRight, 
@@ -14,10 +15,12 @@ import {
   FileVideo,
   BookOpen,
   Settings,
-  Users
+  Users,
+  Info
 } from 'lucide-react'
 
 export default function AdminDashboard() {
+  const { data: session, status } = useSession()
   const [courses, setCourses] = useState([])
   const [selectedCourse, setSelectedCourse] = useState(null)
   const [selectedItem, setSelectedItem] = useState(null) // Can be course, chapter or lesson
@@ -45,6 +48,74 @@ export default function AdminDashboard() {
   const [inviteCodeExpiry, setInviteCodeExpiry] = useState('')
   const [generatingInviteCode, setGeneratingInviteCode] = useState(false)
   const [loadingInviteCodes, setLoadingInviteCodes] = useState(false)
+  const [deletingInviteCode, setDeletingInviteCode] = useState(null)
+  
+  // 课程编辑器状态
+  const [courseEditor, setCourseEditor] = useState({
+    title: '',
+    description: '',
+    price: null,
+    category: '',
+    status: 'DRAFT',
+    createdAt: '',
+    updatedAt: '',
+    structure: null
+  })
+  
+  // Toast 通知状态
+  const [toasts, setToasts] = useState([])
+
+  // Toast 通知函数
+  const showToast = (message, type = 'success') => {
+    const id = Date.now()
+    const newToast = { id, message, type }
+    setToasts(prev => [...prev, newToast])
+    
+    // 3秒后自动移除
+    setTimeout(() => {
+      setToasts(prev => prev.filter(toast => toast.id !== id))
+    }, 3000)
+  }
+
+  const removeToast = (id) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id))
+  }
+
+  // 智能更新课程数据，保持当前选择状态
+  const updateCoursesData = async (preserveSelection = true) => {
+    const currentCourseId = selectedCourse?.courseId
+    const currentSelectedItem = selectedItem
+    const currentExpandedChapters = expandedChapters
+    
+    try {
+      const response = await fetch('/api/courses?includeStructure=true')
+      if (response.ok) {
+        const data = await response.json()
+        setCourses(data)
+        
+        if (preserveSelection && currentCourseId) {
+          // 恢复选中的课程
+          const restoredCourse = data.find(c => c.courseId === currentCourseId)
+          if (restoredCourse) {
+            setSelectedCourse(restoredCourse)
+            // 恢复展开的章节
+            setExpandedChapters(currentExpandedChapters)
+            // 保持选中的项目
+            setSelectedItem(currentSelectedItem)
+          }
+        } else if (!preserveSelection && data.length > 0) {
+          // 默认选择第一个课程（初始加载时使用）
+          setSelectedCourse(data[0])
+          if (data[0].fileSystemStructure?.chapters?.length > 0) {
+            setExpandedChapters(new Set([data[0].fileSystemStructure.chapters[0].chapterNumber]))
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Failed to update courses data:', error)
+      showToast('刷新数据失败', 'error')
+    }
+  }
 
   useEffect(() => {
     loadCourses()
@@ -89,18 +160,7 @@ export default function AdminDashboard() {
   const loadCourses = async () => {
     try {
       setLoading(true)
-      const response = await fetch('/api/courses?includeStructure=true')
-      if (response.ok) {
-        const data = await response.json()
-        setCourses(data)
-        // 自动选择第一个课程
-        if (data.length > 0) {
-          setSelectedCourse(data[0])
-          if (data[0].fileSystemStructure?.chapters?.length > 0) {
-            setExpandedChapters(new Set([data[0].fileSystemStructure.chapters[0].chapterNumber]))
-          }
-        }
-      }
+      await updateCoursesData(false) // 初始加载，不保持选择
     } catch (error) {
       console.error('Failed to load courses:', error)
     } finally {
@@ -192,18 +252,25 @@ export default function AdminDashboard() {
       if (response.ok) {
         const newCourse = await response.json()
         // 重新加载课程列表以获取完整结构
-        await loadCourses()
+        await updateCoursesData(false) // 不保持选择，切换到新创建的课程
         // 选择新创建的课程
-        setSelectedCourse(newCourse)
+        const updatedCourses = await fetch('/api/courses?includeStructure=true').then(r => r.json())
+        const createdCourse = updatedCourses.find(c => c.courseId === newCourse.courseId)
+        if (createdCourse) {
+          setSelectedCourse(createdCourse)
+          if (createdCourse.fileSystemStructure?.chapters?.length > 0) {
+            setExpandedChapters(new Set([createdCourse.fileSystemStructure.chapters[0].chapterNumber]))
+          }
+        }
         setShowCourseModal(false)
-        alert('课程创建成功！文件夹和基础结构已创建。')
+        showToast('课程创建成功！文件夹和基础结构已创建。', 'success')
       } else {
         const error = await response.json()
-        alert(`创建失败: ${error.error}`)
+        showToast(`创建失败: ${error.error}`, 'error')
       }
     } catch (error) {
       console.error('Failed to create course:', error)
-      alert('创建失败，请重试')
+      showToast('创建失败，请重试', 'error')
     }
   }
 
@@ -221,11 +288,11 @@ export default function AdminDashboard() {
         const updatedCourse = await response.json()
         setCourses(courses.map(c => c.id === updatedCourse.id ? updatedCourse : c))
         setSelectedCourse(updatedCourse)
-        alert('课程更新成功！')
+        showToast('课程更新成功！', 'success')
       }
     } catch (error) {
       console.error('Failed to update course:', error)
-      alert('更新失败，请重试')
+      showToast('更新失败，请重试', 'error')
     }
   }
 
@@ -241,20 +308,36 @@ export default function AdminDashboard() {
           if (selectedCourse?.courseId === courseId) {
             setSelectedCourse(courses.find(c => c.courseId !== courseId) || null)
           }
-          alert('课程删除成功！文件夹和数据库记录已删除。')
+          showToast('课程删除成功！文件夹和数据库记录已删除。', 'success')
         }
       } catch (error) {
         console.error('Failed to delete course:', error)
-        alert('删除失败，请重试')
+        showToast('删除失败，请重试', 'error')
       }
     }
   }
 
   const addChapter = async () => {
-    if (!selectedCourse) return
+    if (!selectedCourse) {
+      showToast('请先选择一个课程', 'error')
+      return
+    }
+    
+    // 确保有文件系统结构数据
+    if (!selectedCourse.fileSystemStructure) {
+      showToast('课程结构未加载，请刷新页面重试', 'error')
+      return
+    }
     
     const existingChapters = selectedCourse.fileSystemStructure?.chapters || []
     const chapterNumber = `chapter${existingChapters.length + 1}`
+    
+    console.log('Adding chapter:', { 
+      courseId: selectedCourse.courseId, 
+      chapterNumber, 
+      existingChapters: existingChapters.length,
+      hasStructure: !!selectedCourse.fileSystemStructure
+    })
     
     try {
       const response = await fetch(`/api/courses/${selectedCourse.courseId}/content`, {
@@ -268,17 +351,22 @@ export default function AdminDashboard() {
         })
       })
       
+      const result = await response.json()
+      console.log('Add chapter response:', result)
+      
       if (response.ok) {
-        // 重新加载课程结构
-        await loadCourses()
-        alert('章节创建成功！')
+        showToast('章节创建成功！', 'success')
+        // 保持当前状态，只更新数据
+        await updateCoursesData(true)
+        // 展开新创建的章节
+        setExpandedChapters(prev => new Set([...prev, chapterNumber]))
       } else {
-        const error = await response.json()
-        alert(`创建章节失败: ${error.error}`)
+        console.error('Add chapter error:', result)
+        showToast(`创建章节失败: ${result.error || '未知错误'}`, 'error')
       }
     } catch (error) {
       console.error('Failed to add chapter:', error)
-      alert('添加章节失败，请重试')
+      showToast('添加章节失败，请重试', 'error')
     }
   }
 
@@ -299,7 +387,7 @@ export default function AdminDashboard() {
         }
       } catch (error) {
         console.error('Failed to delete chapter:', error)
-        alert('删除失败，请重试')
+        showToast('删除失败，请重试', 'error')
       }
     }
   }
@@ -329,16 +417,16 @@ export default function AdminDashboard() {
       })
       
       if (response.ok) {
-        // 重新加载课程结构
-        await loadCourses()
-        alert('课时创建成功！')
+        // 保持当前状态，只更新数据
+        await updateCoursesData(true)
+        showToast('课时创建成功！', 'success')
       } else {
         const error = await response.json()
-        alert(`创建课时失败: ${error.error}`)
+        showToast(`创建课时失败: ${error.error}`, 'error')
       }
     } catch (error) {
       console.error('Failed to add lesson:', error)
-      alert('添加课时失败，请重试')
+      showToast('添加课时失败，请重试', 'error')
     }
   }
 
@@ -354,13 +442,13 @@ export default function AdminDashboard() {
         setSearchedUser(user)
       } else if (response.status === 404) {
         setSearchedUser(null)
-        alert('未找到该用户')
+        showToast('未找到该用户', 'error')
       } else {
-        alert('搜索用户时出错')
+        showToast('搜索用户时出错', 'error')
       }
     } catch (error) {
       console.error('Error searching user:', error)
-      alert('搜索用户时出错')
+      showToast('搜索用户时出错', 'error')
     } finally {
       setSearchingUser(false)
     }
@@ -384,17 +472,17 @@ export default function AdminDashboard() {
       
       const allSuccessful = results.every(r => r.ok)
       if (allSuccessful) {
-        alert('用户授权成功！')
+        showToast('用户授权成功！', 'success')
         // 重新搜索用户以更新状态
         if (searchedUser) {
           await searchUser(searchedUser.email)
         }
       } else {
-        alert('部分授权失败，请检查')
+        showToast('部分授权失败，请检查', 'error')
       }
     } catch (error) {
       console.error('Error granting access:', error)
-      alert('授权失败，请重试')
+      showToast('授权失败，请重试', 'error')
     } finally {
       setGrantingAccess(false)
     }
@@ -410,24 +498,24 @@ export default function AdminDashboard() {
       })
       
       if (response.ok) {
-        alert('访问权限已撤销')
+        showToast('访问权限已撤销', 'success')
         // 重新搜索用户以更新状态
         if (searchedUser) {
           await searchUser(searchedUser.email)
         }
       } else {
-        alert('撤销权限失败')
+        showToast('撤销权限失败', 'error')
       }
     } catch (error) {
       console.error('Error revoking access:', error)
-      alert('撤销权限失败')
+      showToast('撤销权限失败', 'error')
     }
   }
 
   // 邀请码管理函数
   const generateInviteCode = async () => {
     if (selectedCoursesForInvite.size === 0) {
-      alert('请至少选择一个课程')
+      showToast('请至少选择一个课程', 'error')
       return
     }
 
@@ -448,18 +536,19 @@ export default function AdminDashboard() {
       })
 
       if (response.ok) {
-        const newInviteCode = await response.json()
-        alert(`邀请码生成成功：${newInviteCode.code}`)
+        const result = await response.json()
+        const newInviteCode = result.inviteCode
+        showToast(`邀请码生成成功：${newInviteCode.code}`, 'success')
         setSelectedCoursesForInvite(new Set())
         setInviteCodeExpiry('')
         await loadInviteCodes()
       } else {
         const error = await response.json()
-        alert(`生成失败：${error.error}`)
+        showToast(`生成失败：${error.error}`, 'error')
       }
     } catch (error) {
       console.error('Error generating invite code:', error)
-      alert('生成失败，请重试')
+      showToast('生成失败，请重试', 'error')
     } finally {
       setGeneratingInviteCode(false)
     }
@@ -471,7 +560,7 @@ export default function AdminDashboard() {
       const response = await fetch('/api/invite-codes')
       if (response.ok) {
         const data = await response.json()
-        setInviteCodes(data)
+        setInviteCodes(data.inviteCodes || [])
       } else {
         console.error('Failed to load invite codes')
       }
@@ -485,6 +574,7 @@ export default function AdminDashboard() {
   const deleteInviteCode = async (inviteCodeId) => {
     if (!confirm('确定要删除这个邀请码吗？')) return
 
+    setDeletingInviteCode(inviteCodeId)
     try {
       const response = await fetch('/api/invite-codes', {
         method: 'DELETE',
@@ -495,15 +585,17 @@ export default function AdminDashboard() {
       })
 
       if (response.ok) {
-        alert('邀请码删除成功')
+        showToast('邀请码删除成功', 'success')
         await loadInviteCodes()
       } else {
         const error = await response.json()
-        alert(`删除失败：${error.error}`)
+        showToast(`删除失败：${error.error || '未知错误'}`, 'error')
       }
     } catch (error) {
       console.error('Error deleting invite code:', error)
-      alert('删除失败，请重试')
+      showToast('删除失败，请重试', 'error')
+    } finally {
+      setDeletingInviteCode(null)
     }
   }
 
@@ -550,15 +642,15 @@ export default function AdminDashboard() {
       })
       
       if (response.ok) {
-        await loadCourses() // 重新加载数据
-        alert('章节名称已更新')
+        await updateCoursesData(true) // 保持当前选择，更新数据
+        showToast('章节名称已更新', 'success')
         cancelEdit()
       } else {
-        alert('更新失败')
+        showToast('更新失败', 'error')
       }
     } catch (error) {
       console.error('Error updating chapter name:', error)
-      alert('更新失败')
+      showToast('更新失败', 'error')
     }
   }
 
@@ -580,14 +672,14 @@ export default function AdminDashboard() {
       })
       
       if (response.ok) {
-        await loadCourses() // 重新加载数据
-        alert('章节信息已更新')
+        await updateCoursesData(true) // 保持当前选择，更新数据
+        showToast('章节信息已更新', 'success')
       } else {
-        alert('更新失败')
+        showToast('更新失败', 'error')
       }
     } catch (error) {
       console.error('Error updating chapter info:', error)
-      alert('更新失败')
+      showToast('更新失败', 'error')
     }
   }
 
@@ -617,19 +709,53 @@ export default function AdminDashboard() {
         // 然后保存MDX内容
         const mdxSuccess = await save_mdx_content(selectedItem.chapterNumber, selectedItem.lessonNumber, mdxContent)
         
-        await loadCourses() // 重新加载数据
+        await updateCoursesData(true) // 保持当前选择，更新数据
         
         if (mdxSuccess) {
-          alert('课时信息和内容已保存')
+          showToast('课时信息和内容已保存', 'success')
         } else {
-          alert('课时信息已保存，但内容保存失败')
+          showToast('课时信息已保存，但内容保存失败', 'error')
         }
       } else {
-        alert('保存失败')
+        showToast('保存失败', 'error')
       }
     } catch (error) {
       console.error('Error saving lesson info:', error)
-      alert('保存失败')
+      showToast('保存失败', 'error')
+    }
+  }
+
+  // 保存课程编辑器信息
+  const saveCourseEditor = async () => {
+    if (!selectedCourse) return
+    
+    try {
+      // 更新数据库中的课程信息
+      const response = await fetch('/api/courses', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          courseId: selectedCourse.courseId,
+          title: courseEditor.title.trim(),
+          description: courseEditor.description.trim(),
+          price: courseEditor.price,
+          category: courseEditor.category.trim(),
+          status: courseEditor.status
+        })
+      })
+      
+      if (response.ok) {
+        await updateCoursesData(true) // 保持当前选择，更新数据
+        showToast('课程信息已保存', 'success')
+      } else {
+        const errorData = await response.json()
+        showToast(`保存失败: ${errorData.error || '未知错误'}`, 'error')
+      }
+    } catch (error) {
+      console.error('Error saving course info:', error)
+      showToast('保存失败', 'error')
     }
   }
 
@@ -651,15 +777,15 @@ export default function AdminDashboard() {
       })
       
       if (response.ok) {
-        await loadCourses() // 重新加载数据
-        alert('课时名称已更新')
+        await updateCoursesData(true) // 保持当前选择，更新数据
+        showToast('课时名称已更新', 'success')
         cancelEdit()
       } else {
-        alert('更新失败')
+        showToast('更新失败', 'error')
       }
     } catch (error) {
       console.error('Error updating lesson name:', error)
-      alert('更新失败')
+      showToast('更新失败', 'error')
     }
   }
 
@@ -681,7 +807,7 @@ export default function AdminDashboard() {
 
     const handleFileSelect = async (file) => {
       if (!file || !file.type.startsWith('video/')) {
-        alert('请选择有效的视频文件')
+        showToast('请选择有效的视频文件', 'error')
         return
       }
 
@@ -703,10 +829,10 @@ export default function AdminDashboard() {
 
         const result = await response.json()
         onUploadComplete(result)
-        alert('视频上传成功！')
+        showToast('视频上传成功！', 'success')
       } catch (error) {
         console.error('Upload error:', error)
-        alert('视频上传失败，请重试')
+        showToast('视频上传失败，请重试', 'error')
       } finally {
         setUploading(false)
       }
@@ -825,7 +951,7 @@ export default function AdminDashboard() {
   }
 
   // Course Authorization Panel Component
-  const CourseAuthorizationPanel = ({ user, courses, onGrantAccess, grantingAccess }) => {
+  const CourseAuthorizationPanel = ({ user, courses, onGrantAccess, grantingAccess, showToast }) => {
     const [selectedCourses, setSelectedCourses] = useState(new Set())
 
     // 获取用户已有的课程ID列表
@@ -843,7 +969,7 @@ export default function AdminDashboard() {
 
     const handleGrantAccess = () => {
       if (selectedCourses.size === 0) {
-        alert('请至少选择一个课程')
+        showToast('请至少选择一个课程', 'error')
         return
       }
       onGrantAccess(user.id, Array.from(selectedCourses))
@@ -936,6 +1062,45 @@ export default function AdminDashboard() {
       </div>
     )
   }
+
+  // Toast 组件
+  const ToastContainer = () => (
+    <div className="fixed top-4 right-4 z-50 space-y-2">
+      {toasts.map((toast) => (
+        <div
+          key={toast.id}
+          className={`flex items-center justify-between p-4 rounded-lg shadow-lg min-w-80 max-w-96 animate-in slide-in-from-right duration-300 ${
+            toast.type === 'success' 
+              ? 'bg-green-50 border border-green-200 text-green-800' 
+              : toast.type === 'error'
+              ? 'bg-red-50 border border-red-200 text-red-800'
+              : toast.type === 'info'
+              ? 'bg-yellow-50 border border-yellow-200 text-yellow-800'
+              : 'bg-blue-50 border border-blue-200 text-blue-800'
+          }`}
+        >
+          <div className="flex items-center">
+            {toast.type === 'success' && (
+              <Check className="w-5 h-5 mr-2 text-green-600" />
+            )}
+            {toast.type === 'error' && (
+              <X className="w-5 h-5 mr-2 text-red-600" />
+            )}
+            {toast.type === 'info' && (
+              <Info className="w-5 h-5 mr-2 text-yellow-600" />
+            )}
+            <span className="text-sm font-medium">{toast.message}</span>
+          </div>
+          <button
+            onClick={() => removeToast(toast.id)}
+            className="ml-3 text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      ))}
+    </div>
+  )
 
   // 课程创建模态框
   const CourseModal = () => {
@@ -1039,35 +1204,63 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Left Panel - Course Management */}
-      <div className="w-1/3 bg-white border-r border-gray-200 overflow-y-auto">
-        {/* Header with Tabs */}
-        <div className="p-4 border-b border-gray-200">
-          <div className="flex space-x-1 mb-4">
+    <div className="flex flex-col h-screen bg-gray-50">
+      {/* Top Navigation Bar */}
+      <div className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="flex items-center justify-between">
+          {/* Left side - Tab navigation */}
+          <div className="flex space-x-1">
             <button
               onClick={() => setActiveTab('courses')}
-              className={`px-3 py-2 text-sm rounded-md ${
+              className={`px-4 py-2 text-sm rounded-md transition-colors ${
                 activeTab === 'courses'
                   ? 'bg-blue-100 text-blue-700'
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
-              <BookOpen className="w-4 h-4 inline mr-1" />
+              <BookOpen className="w-4 h-4 inline mr-2" />
               课程管理
             </button>
             <button
               onClick={() => setActiveTab('users')}
-              className={`px-3 py-2 text-sm rounded-md ${
+              className={`px-4 py-2 text-sm rounded-md transition-colors ${
                 activeTab === 'users'
                   ? 'bg-blue-100 text-blue-700'
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
-              <Users className="w-4 h-4 inline mr-1" />
+              <Users className="w-4 h-4 inline mr-2" />
               验证码
             </button>
           </div>
+          
+          {/* Right side - User info and logout */}
+          <div className="flex items-center space-x-4">
+            <div className="text-sm text-gray-600">
+              <span className="font-medium">管理员:</span>
+              <span className="ml-1">{session?.user?.email || 'admin@example.com'}</span>
+            </div>
+            <button
+              onClick={() => {
+                // Add logout functionality here
+                if (confirm('确定要退出登录吗？')) {
+                  window.location.href = '/api/auth/signout'
+                }
+              }}
+              className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-md transition-colors"
+            >
+              退出
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      {/* Main Content Area */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Left Panel - Course Management */}
+        <div className="w-1/3 bg-white border-r border-gray-200 overflow-y-auto">
+          {/* Header with Action Button */}
+          <div className="p-4 border-b border-gray-200">
           
           {activeTab === 'courses' && (
             <button
@@ -1095,10 +1288,21 @@ export default function AdminDashboard() {
                   }`}
                   onClick={() => {
                     setSelectedCourse(course)
-                    setSelectedItem(null)
+                    setSelectedItem({ type: 'course', courseId: course.courseId })
                     if (course.fileSystemStructure?.chapters?.length > 0) {
                       setExpandedChapters(new Set([course.fileSystemStructure.chapters[0].chapterNumber]))
                     }
+                    // 初始化课程编辑器数据
+                    setCourseEditor({
+                      title: course.metadata?.title || course.title || '',
+                      description: course.metadata?.description || course.description || '',
+                      price: course.metadata?.price || course.price || null,
+                      category: course.metadata?.category || course.category || '',
+                      status: course.metadata?.status || course.status || 'DRAFT',
+                      createdAt: course.metadata?.createdAt || course.createdAt || '',
+                      updatedAt: course.metadata?.updatedAt || course.updatedAt || '',
+                      structure: course.metadata?.structure || null
+                    })
                   }}
                 >
                   <div className="flex items-start justify-between">
@@ -1253,16 +1457,21 @@ export default function AdminDashboard() {
                           </div>
                           {inviteCode.user && (
                             <div className="text-xs text-gray-500 mt-1">
-                              使用者: {inviteCode.user.name || inviteCode.user.email}
+                              使用者: {inviteCode.user.email} {inviteCode.user.name && `(${inviteCode.user.name})`}
                             </div>
                           )}
                         </div>
                         <button
                           onClick={() => deleteInviteCode(inviteCode.id)}
-                          className="p-1 text-red-600 hover:text-red-800 hover:bg-red-100 rounded"
-                          title="删除邀请码"
+                          disabled={deletingInviteCode === inviteCode.id}
+                          className="p-1 text-red-600 hover:text-red-800 hover:bg-red-100 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                          title={deletingInviteCode === inviteCode.id ? "删除中..." : "删除邀请码"}
                         >
-                          <Trash2 className="w-4 h-4" />
+                          {deletingInviteCode === inviteCode.id ? (
+                            <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+                          ) : (
+                            <Trash2 className="w-4 h-4" />
+                          )}
                         </button>
                       </div>
                     ))}
@@ -1298,6 +1507,7 @@ export default function AdminDashboard() {
                 courses={courses}
                 onGrantAccess={grantUserAccess}
                 grantingAccess={grantingAccess}
+                showToast={showToast}
               />
             </div>
           </>
@@ -1416,7 +1626,7 @@ export default function AdminDashboard() {
                           onClick={(e) => {
                             e.stopPropagation()
                             // TODO: 实现删除章节功能
-                            alert('删除章节功能开发中...')
+                            showToast('删除章节功能开发中...', 'info')
                           }}
                           className="p-1 text-red-600 hover:text-red-800 hover:bg-red-100 rounded"
                           title="删除章节"
@@ -1500,7 +1710,7 @@ export default function AdminDashboard() {
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation()
-                                  alert('删除课时功能开发中...')
+                                  showToast('删除课时功能开发中...', 'info')
                                 }}
                                 className="p-1 text-red-600 hover:text-red-800 hover:bg-red-100 rounded"
                                 title="删除课时"
@@ -1540,96 +1750,132 @@ export default function AdminDashboard() {
                 </div>
                 
                 <div className="space-y-6">
+                  {/* 课程ID - 只读 */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">课程ID</label>
+                    <input
+                      type="text"
+                      value={selectedCourse?.courseId || ''}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-500 cursor-not-allowed"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">课程ID不可修改</p>
+                  </div>
+
+                  {/* 课程标题 */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">课程标题</label>
                     <input
                       type="text"
-                      value={selectedCourse?.title || ''}
-                      onChange={(e) => {
-                        const updatedCourse = { ...selectedCourse, title: e.target.value }
-                        setSelectedCourse(updatedCourse)
-                        setCourses(courses.map(c => c.id === selectedCourse.id ? updatedCourse : c))
-                      }}
+                      value={courseEditor.title}
+                      onChange={(e) => setCourseEditor({...courseEditor, title: e.target.value})}
+                      placeholder="输入课程标题"
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   
+                  {/* 课程描述 */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">课程描述</label>
                     <textarea
                       rows={4}
-                      value={selectedCourse?.description || ''}
-                      onChange={(e) => {
-                        const updatedCourse = { ...selectedCourse, description: e.target.value }
-                        setSelectedCourse(updatedCourse)
-                        setCourses(courses.map(c => c.id === selectedCourse.id ? updatedCourse : c))
-                      }}
+                      value={courseEditor.description}
+                      onChange={(e) => setCourseEditor({...courseEditor, description: e.target.value})}
+                      placeholder="输入课程描述，向学员介绍这门课程的内容和特色"
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
 
+                  {/* 课程价格 */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">课程价格</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={selectedCourse?.price || ''}
-                      onChange={(e) => {
-                        const updatedCourse = { ...selectedCourse, price: e.target.value ? parseFloat(e.target.value) : null }
-                        setSelectedCourse(updatedCourse)
-                        setCourses(courses.map(c => c.id === selectedCourse.id ? updatedCourse : c))
-                      }}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+                    <div className="relative">
+                      <span className="absolute left-3 top-2 text-gray-500">¥</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={courseEditor.price || ''}
+                        onChange={(e) => setCourseEditor({...courseEditor, price: e.target.value ? parseFloat(e.target.value) : null})}
+                        placeholder="0.00"
+                        className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">设置为0或留空表示免费课程</p>
                   </div>
 
+                  {/* 课程分类 */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">课程分类</label>
                     <input
                       type="text"
-                      value={selectedCourse?.category || ''}
-                      onChange={(e) => {
-                        const updatedCourse = { ...selectedCourse, category: e.target.value }
-                        setSelectedCourse(updatedCourse)
-                        setCourses(courses.map(c => c.id === selectedCourse.id ? updatedCourse : c))
-                      }}
+                      value={courseEditor.category || ''}
+                      onChange={(e) => setCourseEditor({...courseEditor, category: e.target.value})}
+                      placeholder="例如：编程、设计、商业等"
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   
+                  {/* 课程状态 */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">课程状态</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">发布状态</label>
                     <div className="space-y-3">
-                      {['DRAFT', 'PUBLISHED', 'ARCHIVED'].map((status) => (
-                        <label key={status} className="flex items-center">
+                      {[
+                        { value: 'DRAFT', label: '草稿', desc: '课程未公开，仅管理员可见', color: 'text-yellow-600' },
+                        { value: 'PUBLISHED', label: '已发布', desc: '课程已公开，用户可以看到和购买', color: 'text-green-600' },
+                        { value: 'ARCHIVED', label: '已归档', desc: '课程已下线，不再对外展示', color: 'text-gray-600' }
+                      ].map((status) => (
+                        <label key={status.value} className="flex items-start p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
                           <input
                             type="radio"
                             name="courseStatus"
-                            value={status}
-                            checked={selectedCourse?.status === status}
-                            onChange={(e) => {
-                              const updatedCourse = { ...selectedCourse, status: e.target.value }
-                              setSelectedCourse(updatedCourse)
-                              setCourses(courses.map(c => c.id === selectedCourse.id ? updatedCourse : c))
-                            }}
-                            className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                            value={status.value}
+                            checked={courseEditor.status === status.value}
+                            onChange={(e) => setCourseEditor({...courseEditor, status: e.target.value})}
+                            className="mt-0.5 h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                           />
-                          <span className={`ml-3 text-sm font-medium ${
-                            status === 'PUBLISHED' ? 'text-green-600' :
-                            status === 'DRAFT' ? 'text-yellow-600' :
-                            'text-gray-600'
-                          }`}>
-                            {status === 'DRAFT' ? '草稿' : status === 'PUBLISHED' ? '已发布' : '已归档'}
-                          </span>
+                          <div className="ml-3">
+                            <span className={`text-sm font-medium ${status.color}`}>
+                              {status.label}
+                            </span>
+                            <p className="text-xs text-gray-500 mt-1">{status.desc}</p>
+                          </div>
                         </label>
                       ))}
                     </div>
                   </div>
-                  
 
+                  {/* 课程统计信息 */}
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h4 className="text-sm font-medium text-gray-700 mb-3">课程统计</h4>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span className="text-gray-500">章节数量:</span>
+                        <span className="ml-2 font-medium">{courseEditor.structure?.chapters?.length || selectedCourse?.fileSystemStructure?.chapters?.length || 0}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">课时总数:</span>
+                        <span className="ml-2 font-medium">
+                          {courseEditor.structure?.chapters?.reduce((total, chapter) => 
+                            total + (chapter.lessons?.length || 0), 0) || 
+                           selectedCourse?.fileSystemStructure?.chapters?.reduce((total, chapter) => 
+                            total + (chapter.lessons?.length || 0), 0) || 0}
+                        </span>
+                      </div>
+                      <div className="col-span-2">
+                        <span className="text-gray-500">创建时间:</span>
+                        <span className="ml-2 font-medium">
+                          {courseEditor.createdAt ? new Date(courseEditor.createdAt).toLocaleString('zh-CN') : 
+                           selectedCourse?.createdAt ? new Date(selectedCourse.createdAt).toLocaleString('zh-CN') : '未知'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 保存按钮 */}
                   <button
-                    onClick={() => updateCourse(selectedCourse)}
-                    className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                    onClick={saveCourseEditor}
+                    className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
                   >
                     保存课程信息
                   </button>
@@ -1838,8 +2084,8 @@ export default function AdminDashboard() {
                         return lesson?.thumbnail || '';
                       })()}
                       onUploadComplete={async (result) => {
-                        // 重新加载课程数据以刷新当前视频信息显示
-                        await loadCourses()
+                        // 保持当前状态，只更新数据以刷新当前视频信息显示
+                        await updateCoursesData(true)
                       }}
                     />
                   </div>
@@ -1894,8 +2140,12 @@ export default function AdminDashboard() {
         )}
       </div>
 
-      {/* Course Creation Modal */}
-      <CourseModal />
+        {/* Course Creation Modal */}
+        <CourseModal />
+        
+        {/* Toast Notifications */}
+        <ToastContainer />
+      </div>
     </div>
   )
 }

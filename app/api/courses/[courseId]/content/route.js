@@ -79,10 +79,18 @@ export async function POST(request, { params }) {
     
     if (type === 'chapter') {
       // 创建新章节
+      console.log('Creating chapter:', { courseId, chapterNumber });
       const chapterPath = await createChapterDirectory(courseId, chapterNumber);
+      console.log('Chapter created at:', chapterPath);
+      
+      // 清除缓存以确保数据刷新
+      const { clearCourseStructureCache } = await import('../../../../../libs/courseFileSystem');
+      clearCourseStructureCache(courseId);
+      
       return NextResponse.json({ 
         message: 'Chapter created successfully',
-        path: chapterPath 
+        path: chapterPath,
+        chapterNumber: chapterNumber
       }, { status: 201 });
     } else if (type === 'lesson') {
       // 创建新课时

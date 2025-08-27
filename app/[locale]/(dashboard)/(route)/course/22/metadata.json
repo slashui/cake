@@ -1,0 +1,71 @@
+{
+  "title": "第二门课程",
+  "description": "第二门课程详情",
+  "price": null,
+  "category": "",
+  "status": "DRAFT",
+  "createdAt": "2025-08-27T07:21:16.517Z",
+  "chapters": [],
+  "structure": {
+    "chapters": [
+      {
+        "chapterNumber": "chapter1",
+        "showName": "第一章",
+        "description": "",
+        "status": "DRAFT",
+        "requiredRole": "FREE",
+        "order": 1,
+        "createdAt": "2025-08-27T07:21:23.486Z",
+        "updatedAt": "2025-08-27T07:27:50.839Z",
+        "lessons": [
+          {
+            "lessonNumber": "lesson1",
+            "showName": "第一课",
+            "duration": "10分钟",
+            "url": "/cn/course/chapter1/lesson1",
+            "requiredRole": "FREE",
+            "order": 1,
+            "createdAt": "2025-08-27T07:28:08.544Z",
+            "updatedAt": "2025-08-27T07:28:29.333Z",
+            "videoUrl": ""
+          },
+          {
+            "lessonNumber": "lesson2",
+            "showName": "第二课",
+            "duration": "30分钟",
+            "url": "/cn/course/chapter1/lesson2",
+            "requiredRole": "FREE",
+            "order": 2,
+            "createdAt": "2025-08-27T07:28:40.406Z",
+            "updatedAt": "2025-08-27T07:28:51.010Z",
+            "videoUrl": ""
+          }
+        ]
+      },
+      {
+        "chapterNumber": "chapter2",
+        "showName": "第二章",
+        "description": "",
+        "status": "DRAFT",
+        "requiredRole": "FREE",
+        "order": 2,
+        "createdAt": "2025-08-27T07:27:54.966Z",
+        "updatedAt": "2025-08-27T07:28:05.264Z",
+        "lessons": [
+          {
+            "lessonNumber": "lesson1",
+            "showName": "第二章第一节",
+            "duration": "30分钟",
+            "url": "/cn/course/chapter2/lesson1",
+            "requiredRole": "FREE",
+            "order": 1,
+            "createdAt": "2025-08-27T07:28:54.907Z",
+            "updatedAt": "2025-08-27T07:29:14.506Z",
+            "videoUrl": ""
+          }
+        ]
+      }
+    ]
+  },
+  "updatedAt": "2025-08-27T07:29:14.506Z"
+}
