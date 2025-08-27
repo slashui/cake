@@ -38,6 +38,13 @@ export default function AdminDashboard() {
   const [editName, setEditName] = useState('')
   const [chapterEditData, setChapterEditData] = useState({ showName: '', description: '' })
   const [lessonEditData, setLessonEditData] = useState({ showName: '', duration: '', url: '', videoUrl: '', streamId: '', thumbnail: '' })
+  
+  // 邀请码相关状态
+  const [inviteCodes, setInviteCodes] = useState([])
+  const [selectedCoursesForInvite, setSelectedCoursesForInvite] = useState(new Set())
+  const [inviteCodeExpiry, setInviteCodeExpiry] = useState('')
+  const [generatingInviteCode, setGeneratingInviteCode] = useState(false)
+  const [loadingInviteCodes, setLoadingInviteCodes] = useState(false)
 
   useEffect(() => {
     loadCourses()
@@ -416,6 +423,96 @@ export default function AdminDashboard() {
       alert('撤销权限失败')
     }
   }
+
+  // 邀请码管理函数
+  const generateInviteCode = async () => {
+    if (selectedCoursesForInvite.size === 0) {
+      alert('请至少选择一个课程')
+      return
+    }
+
+    setGeneratingInviteCode(true)
+    try {
+      const courseIds = Array.from(selectedCoursesForInvite)
+      const requestBody = {
+        courseIds,
+        expiresAt: inviteCodeExpiry || null
+      }
+
+      const response = await fetch('/api/invite-codes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody)
+      })
+
+      if (response.ok) {
+        const newInviteCode = await response.json()
+        alert(`邀请码生成成功：${newInviteCode.code}`)
+        setSelectedCoursesForInvite(new Set())
+        setInviteCodeExpiry('')
+        await loadInviteCodes()
+      } else {
+        const error = await response.json()
+        alert(`生成失败：${error.error}`)
+      }
+    } catch (error) {
+      console.error('Error generating invite code:', error)
+      alert('生成失败，请重试')
+    } finally {
+      setGeneratingInviteCode(false)
+    }
+  }
+
+  const loadInviteCodes = async () => {
+    setLoadingInviteCodes(true)
+    try {
+      const response = await fetch('/api/invite-codes')
+      if (response.ok) {
+        const data = await response.json()
+        setInviteCodes(data)
+      } else {
+        console.error('Failed to load invite codes')
+      }
+    } catch (error) {
+      console.error('Error loading invite codes:', error)
+    } finally {
+      setLoadingInviteCodes(false)
+    }
+  }
+
+  const deleteInviteCode = async (inviteCodeId) => {
+    if (!confirm('确定要删除这个邀请码吗？')) return
+
+    try {
+      const response = await fetch('/api/invite-codes', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id: inviteCodeId })
+      })
+
+      if (response.ok) {
+        alert('邀请码删除成功')
+        await loadInviteCodes()
+      } else {
+        const error = await response.json()
+        alert(`删除失败：${error.error}`)
+      }
+    } catch (error) {
+      console.error('Error deleting invite code:', error)
+      alert('删除失败，请重试')
+    }
+  }
+
+  // 在切换到邀请码标签时加载邀请码列表
+  useEffect(() => {
+    if (activeTab === 'users') {
+      loadInviteCodes()
+    }
+  }, [activeTab])
 
   // 开始编辑章节名称
   const startEditChapter = (chapterNumber) => {
@@ -968,7 +1065,7 @@ export default function AdminDashboard() {
               }`}
             >
               <Users className="w-4 h-4 inline mr-1" />
-              用户授权
+              验证码
             </button>
           </div>
           
@@ -1040,100 +1137,142 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* User Authorization */}
+        {/* Invite Code Management */}
         {activeTab === 'users' && (
           <div className="p-4">
-            <h2 className="text-lg font-semibold mb-3">用户授权管理</h2>
+            <h2 className="text-lg font-semibold mb-3">邀请码管理</h2>
             
-            {/* User Search */}
+            {/* Generate Invite Code */}
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  通过邮箱搜索用户
-                </label>
-                <div className="flex space-x-2">
-                  <input
-                    type="email"
-                    value={userSearch}
-                    onChange={(e) => setUserSearch(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        searchUser(userSearch)
-                      }
-                    }}
-                    placeholder="输入用户邮箱..."
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <button
-                    onClick={() => searchUser(userSearch)}
-                    disabled={searchingUser || !userSearch.trim()}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-                  >
-                    {searchingUser ? '搜索中...' : '搜索'}
-                  </button>
+              <div className="bg-white border rounded-lg p-4">
+                <h3 className="font-medium text-gray-900 mb-3">生成新邀请码</h3>
+                
+                {/* Course Selection */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    选择课程（可多选）
+                  </label>
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                    {courses.map((course) => (
+                      <label key={course.id} className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={selectedCoursesForInvite.has(course.id)}
+                          onChange={(e) => {
+                            const newSelected = new Set(selectedCoursesForInvite)
+                            if (e.target.checked) {
+                              newSelected.add(course.id)
+                            } else {
+                              newSelected.delete(course.id)
+                            }
+                            setSelectedCoursesForInvite(newSelected)
+                          }}
+                          className="mr-2"
+                        />
+                        <span className="text-sm">{course.title}</span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
+
+                {/* Expiry Date */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    有效期（可选）
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={inviteCodeExpiry}
+                    onChange={(e) => setInviteCodeExpiry(e.target.value)}
+                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <button
+                  onClick={generateInviteCode}
+                  disabled={generatingInviteCode || selectedCoursesForInvite.size === 0}
+                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {generatingInviteCode ? '生成中...' : `生成邀请码 (${selectedCoursesForInvite.size} 个课程)`}
+                </button>
               </div>
 
-              {/* User Information */}
-              {searchedUser && (
-                <div className="bg-white border rounded-lg p-4">
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <h3 className="font-semibold text-gray-900">
-                        {searchedUser.name || '未设置姓名'}
-                      </h3>
-                      <p className="text-sm text-gray-600">{searchedUser.email}</p>
-                      <div className="mt-2 flex items-center space-x-2">
-                        <span className={`px-2 py-1 text-xs rounded-full ${
-                          searchedUser.role === 'VIP' 
-                            ? 'bg-purple-100 text-purple-700' 
-                            : searchedUser.role === 'PRIME'
-                            ? 'bg-blue-100 text-blue-700'
-                            : 'bg-gray-100 text-gray-700'
-                        }`}>
-                          {searchedUser.role}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          注册时间: {new Date(searchedUser.createdAt).toLocaleDateString('zh-CN')}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Current User Courses */}
-                  <div className="mb-4">
-                    <h4 className="font-medium text-gray-900 mb-2">当前拥有的课程</h4>
-                    {searchedUser.userCourses?.length > 0 ? (
-                      <div className="space-y-2">
-                        {searchedUser.userCourses.map((userCourse) => (
-                          <div 
-                            key={userCourse.id}
-                            className="flex items-center justify-between p-2 bg-green-50 border border-green-200 rounded"
-                          >
-                            <div>
-                              <span className="font-medium text-green-800">
-                                {userCourse.course.title}
-                              </span>
-                              <span className="ml-2 text-sm text-green-600">
-                                授权时间: {new Date(userCourse.grantedAt).toLocaleDateString('zh-CN')}
-                              </span>
-                            </div>
-                            <button
-                              onClick={() => revokeUserAccess(searchedUser.id, userCourse.course.id)}
-                              className="p-1 text-red-600 hover:text-red-800 hover:bg-red-100 rounded"
-                              title="撤销权限"
-                            >
-                              <X className="w-4 h-4" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-gray-500">该用户暂无课程访问权限</p>
-                    )}
-                  </div>
+              {/* Invite Codes List */}
+              <div className="bg-white border rounded-lg p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-medium text-gray-900">邀请码列表</h3>
+                  <button
+                    onClick={loadInviteCodes}
+                    disabled={loadingInviteCodes}
+                    className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200 disabled:opacity-50"
+                  >
+                    {loadingInviteCodes ? '刷新中...' : '刷新'}
+                  </button>
                 </div>
-              )}
+                
+                {loadingInviteCodes ? (
+                  <div className="text-center py-4">
+                    <div className="text-sm text-gray-500">加载中...</div>
+                  </div>
+                ) : inviteCodes.length > 0 ? (
+                  <div className="space-y-2 max-h-96 overflow-y-auto">
+                    {inviteCodes.map((inviteCode) => (
+                      <div 
+                        key={inviteCode.id}
+                        className="flex items-center justify-between p-3 border rounded-lg"
+                      >
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2">
+                            <span className="font-mono text-lg font-semibold">{inviteCode.code}</span>
+                            <span className={`px-2 py-1 text-xs rounded-full ${
+                              inviteCode.status === 'UNUSED' 
+                                ? 'bg-green-100 text-green-700' 
+                                : inviteCode.status === 'USED'
+                                ? 'bg-gray-100 text-gray-700'
+                                : 'bg-red-100 text-red-700'
+                            }`}>
+                              {inviteCode.status === 'UNUSED' ? '未使用' : 
+                               inviteCode.status === 'USED' ? '已使用' : '已过期'}
+                            </span>
+                          </div>
+                          <div className="text-sm text-gray-600 mt-1">
+                            课程: {inviteCode.courses.map(ic => ic.course.title).join(', ')}
+                          </div>
+                          <div className="text-xs text-gray-500 mt-1">
+                            创建时间: {new Date(inviteCode.createdAt).toLocaleString('zh-CN')}
+                            {inviteCode.expiresAt && (
+                              <span className="ml-2">
+                                过期时间: {new Date(inviteCode.expiresAt).toLocaleString('zh-CN')}
+                              </span>
+                            )}
+                            {inviteCode.usedAt && (
+                              <span className="ml-2">
+                                使用时间: {new Date(inviteCode.usedAt).toLocaleString('zh-CN')}
+                              </span>
+                            )}
+                          </div>
+                          {inviteCode.user && (
+                            <div className="text-xs text-gray-500 mt-1">
+                              使用者: {inviteCode.user.name || inviteCode.user.email}
+                            </div>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => deleteInviteCode(inviteCode.id)}
+                          className="p-1 text-red-600 hover:text-red-800 hover:bg-red-100 rounded"
+                          title="删除邀请码"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-4">
+                    <div className="text-sm text-gray-500">暂无邀请码</div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}

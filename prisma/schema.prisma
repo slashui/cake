@@ -23,6 +23,8 @@ model User {
   role           UserRole     @default(FREE)
   accounts       Account[]
   userCourses    UserCourse[]
+  usedInviteCodes InviteCode[]
+  createdInviteCodes InviteCode[] @relation("CreatedInviteCodes")
 }
 
 model Account {
@@ -75,6 +77,7 @@ model Course {
   status      CourseStatus @default(DRAFT)
   thumbnail   String?
   userCourses UserCourse[]
+  inviteCodeCourses InviteCodeCourse[]
 }
 
 model UserCourse {
@@ -98,4 +101,34 @@ enum CourseStatus {
   DRAFT
   PUBLISHED
   ARCHIVED
+}
+
+model InviteCode {
+  id          String            @id @default(cuid())
+  code        String            @unique
+  status      InviteCodeStatus  @default(UNUSED)
+  createdAt   DateTime          @default(now())
+  usedAt      DateTime?
+  usedBy      String?
+  expiresAt   DateTime?
+  createdBy   String
+  courses     InviteCodeCourse[]
+  user        User?             @relation(fields: [usedBy], references: [id])
+  creator     User              @relation("CreatedInviteCodes", fields: [createdBy], references: [id])
+}
+
+model InviteCodeCourse {
+  id           String     @id @default(cuid())
+  inviteCodeId String
+  courseId     String
+  inviteCode   InviteCode @relation(fields: [inviteCodeId], references: [id], onDelete: Cascade)
+  course       Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([inviteCodeId, courseId])
+}
+
+enum InviteCodeStatus {
+  UNUSED
+  USED
+  EXPIRED
 }

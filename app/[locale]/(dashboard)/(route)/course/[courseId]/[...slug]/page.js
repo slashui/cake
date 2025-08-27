@@ -25,42 +25,75 @@ export default function CoursePage({ params }) {
     try {
       setLoading(true)
       
-      // 并行获取课程结构和内容，减少等待时间
-      const requests = [
-        fetch(`/api/courses?courseId=${courseId}&includeStructure=true`)
-      ]
-      
-      // 如果指定了具体的章节和课时，同时获取MDX内容
-      if (chapterNumber && lessonNumber) {
-        requests.push(
-          fetch(`/api/courses/${courseId}/content?chapter=${chapterNumber}&lesson=${lessonNumber}`)
-        )
-      }
-      
-      const responses = await Promise.all(requests)
-      
-      // 处理课程结构响应
-      if (responses[0].ok) {
-        const courseInfo = await responses[0].json()
-        // 合并课程基本信息和文件系统结构
-        setCourseData({
-          ...courseInfo.fileSystemStructure,
-          title: courseInfo.title,
-          description: courseInfo.description,
-          courseId: courseInfo.courseId
+      // 首先检查用户是否有课程访问权限
+      if (session?.user?.id) {
+        console.log('Checking course access for user:', session.user.id)
+        const accessResponse = await fetch('/api/course-access', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: session.user.id,
+            courseId: courseId
+          })
         })
+        
+        if (accessResponse.ok) {
+          const accessData = await accessResponse.json()
+          console.log('Course access check result:', accessData)
+          
+          if (!accessData.hasAccess) {
+            console.log('User does not have access to this course')
+            setError(new Error('No access to this course'))
+            return
+          }
+          
+          // 如果有访问权限，使用返回的课程结构数据
+          if (accessData.courseStructure) {
+            setCourseData({
+              ...accessData.courseStructure,
+              title: accessData.course.title,
+              description: accessData.course.description,
+              courseId: accessData.course.courseId
+            })
+          }
+        } else {
+          console.error('Failed to check course access')
+          setError(new Error('Failed to verify course access'))
+          return
+        }
       } else {
-        console.error('Failed to load course structure')
-        setError(new Error('Course not found'))
-        return
+        // 如果用户未登录，尝试获取课程基本信息（仅用于预览）
+        const courseResponse = await fetch(`/api/courses?courseId=${courseId}&includeStructure=true`)
+        if (courseResponse.ok) {
+          const courseInfo = await courseResponse.json()
+          setCourseData({
+            ...courseInfo.fileSystemStructure,
+            title: courseInfo.title,
+            description: courseInfo.description,
+            courseId: courseInfo.courseId
+          })
+        } else {
+          console.error('Failed to load course structure')
+          setError(new Error('Course not found'))
+          return
+        }
       }
       
-      // 处理课程内容响应（如果有）
-      if (responses[1] && responses[1].ok) {
-        const contentData = await responses[1].json()
-        setLessonData(contentData)
-      } else if (responses[1]) {
-        console.error('Failed to load lesson content')
+      // 如果指定了具体的章节和课时，获取MDX内容
+      if (chapterNumber && lessonNumber) {
+        try {
+          const contentResponse = await fetch(`/api/courses/${courseId}/content?chapter=${chapterNumber}&lesson=${lessonNumber}`)
+          if (contentResponse.ok) {
+            const contentData = await contentResponse.json()
+            setLessonData(contentData)
+          } else {
+            console.error('Failed to load lesson content')
+          }
+        } catch (contentError) {
+          console.error('Error loading lesson content:', contentError)
+        }
       }
       
     } catch (error) {

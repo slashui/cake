@@ -15,7 +15,8 @@ export default function Register() {
         
         email: '',
         password: '',
-        user_level: 'VIP' // 默认选择VIP
+        user_level: 'VIP', // 默认选择VIP
+        inviteCode: '' // 邀请码字段
     })
     useEffect(() => {
         setLang(document.documentElement.lang);
@@ -31,37 +32,54 @@ export default function Register() {
     }, []);
     const registerUser = async (e) => {
         e.preventDefault()
+        
+        // 验证邀请码
+        if (!data.inviteCode.trim()) {
+            toast.error('请输入邀请码');
+            return;
+        }
+        
         try {
+            // 先验证邀请码
+            const verifyResponse = await axios.post('/api/invite-codes/verify', {
+                code: data.inviteCode
+            });
+            
+            if (!verifyResponse.data.success) {
+                toast.error(verifyResponse.data.message || '邀请码验证失败');
+                return;
+            }
+            
             const registerData = {
                 ...data,
                 name: 'user_' + Math.random().toString(36).substr(2, 8) // 生成随机用户名
             };
-            await axios.post('/api/register', registerData);
-                toast.success('Registration successful. Redirecting to the login page in 3 seconds.');
+            
+            // 注册用户
+            const registerResponse = await axios.post('/api/register', registerData);
+            
+            if (registerResponse.data.success) {
+                // 标记邀请码为已使用
+                await axios.put('/api/invite-codes/verify', {
+                    code: data.inviteCode,
+                    userId: registerResponse.data.user.id
+                });
+                
+                toast.success('注册成功！正在跳转到登录页面...');
                 setTimeout(() => {
                     router.push(`/${lang}/login`);
                 }, 3000);
-            } catch (error) {
+            }
+            
+        } catch (error) {
             console.error('Registration error:', error);
 
-            if (error.response) {
-
-                console.error('Response data:', error.response.data);
-                console.error('Response status:', error.response.status);
-                console.error('Response headers:', error.response.headers);
-            } else if (error.request) {
-
-                console.error('No response received. Request:', error.request);
+            if (error.response && error.response.data) {
+                toast.error(error.response.data.message || '注册失败');
             } else {
-
-                console.error('Error setting up the request or unknown error:', error.message);
+                toast.error('注册过程中出现错误，请稍后重试');
             }
-            toast.error('Something went wrong!')
-
         }
-
-
-
     }
 
     return (
@@ -114,6 +132,22 @@ export default function Register() {
                                         onChange={e => setData({ ...data, password: e.target.value })}
                                         className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#845eee]/50 focus:border-[#845eee] outline-none transition-all"
                                         placeholder={t("Nine")}
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="text-gray-700 font-medium block mb-2">
+                                        邀请码
+                                    </label>
+                                    <input
+                                        id="inviteCode"
+                                        name="inviteCode"
+                                        type="text"
+                                        required
+                                        value={data.inviteCode}
+                                        onChange={e => setData({ ...data, inviteCode: e.target.value })}
+                                        className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#845eee]/50 focus:border-[#845eee] outline-none transition-all"
+                                        placeholder="请输入邀请码"
                                     />
                                 </div>
 
