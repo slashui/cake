@@ -24,6 +24,7 @@ import {
   UserMinus
 } from 'lucide-react'
 import AdminVideoUploader from '../../../components/AdminVideoUploader'
+import AdminMaterialUploader from '../../../components/AdminMaterialUploader'
 
 export default function AdminDashboard() {
   const { data: session, status } = useSession()
@@ -41,7 +42,7 @@ export default function AdminDashboard() {
   const [editingLesson, setEditingLesson] = useState(null)
   const [editName, setEditName] = useState('')
   const [chapterEditData, setChapterEditData] = useState({ showName: '', description: '' })
-  const [lessonEditData, setLessonEditData] = useState({ showName: '', duration: '', url: '', videoUrl: '', streamId: '', thumbnail: '' })
+  const [lessonEditData, setLessonEditData] = useState({ showName: '', duration: '', url: '', videoUrl: '', streamId: '', thumbnail: '', materials: [] })
   
   // 处理视频上传回调
   const handleVideoUpload = (videoData) => {
@@ -50,6 +51,14 @@ export default function AdminDashboard() {
       videoUrl: videoData.videoUrl,
       streamId: videoData.streamId,
       thumbnail: videoData.thumbnail
+    }))
+  }
+
+  // 处理课件上传回调
+  const handleMaterialUpload = (materialsData) => {
+    setLessonEditData(prev => ({
+      ...prev,
+      materials: materialsData
     }))
   }
   
@@ -363,7 +372,8 @@ export default function AdminDashboard() {
         url: lesson?.url || '',
         videoUrl: lesson?.videoUrl || '',
         streamId: lesson?.streamId || '',
-        thumbnail: lesson?.thumbnail || ''
+        thumbnail: lesson?.thumbnail || '',
+        materials: lesson?.materials || []
       })
       loadLessonContent(chapterNumber, lessonNumber)
     }
@@ -604,7 +614,8 @@ export default function AdminDashboard() {
           duration: lessonEditData.duration.trim(),
           videoUrl: lessonEditData.videoUrl.trim(),
           streamId: lessonEditData.streamId.trim(),
-          thumbnail: lessonEditData.thumbnail.trim()
+          thumbnail: lessonEditData.thumbnail.trim(),
+          materials: lessonEditData.materials
         })
       })
       
@@ -1550,8 +1561,15 @@ export default function AdminDashboard() {
                       currentThumbnail={lessonEditData.thumbnail}
                       onVideoUpload={handleVideoUpload}
                     />
-                    
 
+                    {/* 课件上传组件 */}
+                    <AdminMaterialUploader
+                      courseId={selectedCourse?.courseId}
+                      chapterNumber={selectedItem?.chapterNumber}
+                      lessonNumber={selectedItem?.lessonNumber}
+                      currentMaterials={lessonEditData.materials}
+                      onMaterialUpload={handleMaterialUpload}
+                    />
                     
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">课时内容 (MDX)</label>
