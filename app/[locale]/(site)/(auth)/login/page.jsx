@@ -23,9 +23,14 @@ export default function Login() {
     useEffect(() => {
         setLang(document.documentElement.lang);
         if (session?.status === 'authenticated') {
-            router.push(`/${lang}/dashboard`)
+            // 根据用户角色进行不同的跳转
+            if (session?.data?.user?.role === 'ADMIN') {
+                router.push(`/${lang}/admin`)
+            } else {
+                router.push(`/${lang}/dashboard`)
+            }
         }
-    }, [session?.status, lang])
+    }, [session?.status, lang, session?.data?.user?.role])
 
     const loginUser = async (e) => {
         e.preventDefault()
@@ -45,6 +50,8 @@ export default function Login() {
 
             if (result?.ok) {
                 toast.success('Logged in successfully!')
+                // 登录成功后，等待session更新，然后根据用户角色跳转
+                // 这里先跳转到dashboard，useEffect会处理角色判断和重定向
                 await router.push(`/${lang}/dashboard`)
                 window.location.reload();
             } else {

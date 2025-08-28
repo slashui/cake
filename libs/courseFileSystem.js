@@ -438,6 +438,11 @@ export async function getCourseStructure(courseId) {
     }
     
     for (const chapterData of courseMetadata.structure.chapters) {
+      // 跳过已删除的章节
+      if (chapterData.deleted) {
+        continue
+      }
+      
       // 只处理存在的章节
       if (!chapterPaths.get(chapterData.chapterNumber)) {
         continue
@@ -453,6 +458,11 @@ export async function getCourseStructure(courseId) {
       }
       
       for (const lessonData of chapterData.lessons || []) {
+        // 跳过已删除的课时
+        if (lessonData.deleted) {
+          continue
+        }
+        
         const lessonMdxPath = lessonPaths.get(lessonData.lessonNumber)
         
         if (lessonMdxPath) {
@@ -649,4 +659,91 @@ export function getAllCourseIds() {
     .filter(item => item.isDirectory())
     .map(item => item.name)
     .sort()
+}
+
+/**
+ * 软删除课程 - 标记为已删除但不删除文件
+ */
+export async function softDeleteCourse(courseId) {
+  const courseMetadata = await getCourseMetadata(courseId)
+  
+  const updatedMetadata = {
+    ...courseMetadata,
+    deleted: true,
+    deletedAt: new Date().toISOString()
+  }
+  
+  await updateCourseMetadata(courseId, updatedMetadata)
+  return updatedMetadata
+}
+
+/**
+ * 软删除章节 - 标记为已删除但不删除文件
+ */
+export async function softDeleteChapter(courseId, chapterNumber) {
+  const courseMetadata = await getCourseMetadata(courseId)
+  
+  if (!courseMetadata.structure || !courseMetadata.structure.chapters) {
+    throw new Error(`Course structure not found for course ${courseId}`)
+  }
+  
+  const chapterIndex = courseMetadata.structure.chapters.findIndex(
+    chapter => chapter.chapterNumber === chapterNumber
+  )
+  
+  if (chapterIndex === -1) {
+    throw new Error(`Chapter ${chapterNumber} not found in course ${courseId}`)
+  }
+  
+  // 标记章节为已删除
+  courseMetadata.structure.chapters[chapterIndex] = {
+    ...courseMetadata.structure.chapters[chapterIndex],
+    deleted: true,
+    deletedAt: new Date().toISOString()
+  }
+  
+  await updateCourseMetadata(courseId, courseMetadata)
+  return courseMetadata.structure.chapters[chapterIndex]
+}
+
+/**
+ * 软删除课时 - 标记为已删除但不删除文件
+ */
+export async function softDeleteLesson(courseId, chapterNumber, lessonNumber) {
+  const courseMetadata = await getCourseMetadata(courseId)
+  
+  if (!courseMetadata.structure || !courseMetadata.structure.chapters) {
+    throw new Error(`Course structure not found for course ${courseId}`)
+  }
+  
+  const chapterIndex = courseMetadata.structure.chapters.findIndex(
+    chapter => chapter.chapterNumber === chapterNumber
+  )
+  
+  if (chapterIndex === -1) {
+    throw new Error(`Chapter ${chapterNumber} not found in course ${courseId}`)
+  }
+  
+  const chapter = courseMetadata.structure.chapters[chapterIndex]
+  if (!chapter.lessons) {
+    throw new Error(`No lessons found in chapter ${chapterNumber}`)
+  }
+  
+  const lessonIndex = chapter.lessons.findIndex(
+    lesson => lesson.lessonNumber === lessonNumber
+  )
+  
+  if (lessonIndex === -1) {
+    throw new Error(`Lesson ${lessonNumber} not found in chapter ${chapterNumber}`)
+  }
+  
+  // 标记课时为已删除
+  chapter.lessons[lessonIndex] = {
+    ...chapter.lessons[lessonIndex],
+    deleted: true,
+    deletedAt: new Date().toISOString()
+  }
+  
+  await updateCourseMetadata(courseId, courseMetadata)
+  return chapter.lessons[lessonIndex]
 }

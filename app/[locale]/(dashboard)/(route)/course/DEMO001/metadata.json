@@ -1,0 +1,50 @@
+{
+  "title": "示例课程",
+  "description": "这是一个示例课程，用于测试邀请码功能",
+  "price": 99,
+  "category": "编程",
+  "status": "PUBLISHED",
+  "createdAt": "2025-01-28T10:00:00.000Z",
+  "chapters": [],
+  "structure": {
+    "chapters": [
+      {
+        "chapterNumber": "chapter1",
+        "showName": "第一章",
+        "description": "示例章节",
+        "status": "DRAFT",
+        "requiredRole": "FREE",
+        "order": 1,
+        "createdAt": "2025-01-28T10:00:00.000Z",
+        "updatedAt": "2025-01-28T10:00:00.000Z",
+        "lessons": [
+          {
+            "lessonNumber": "lesson1",
+            "showName": "示例课时 - 视频测试",
+            "duration": "10分钟",
+            "url": "/cn/course/DEMO001/chapter1/lesson1",
+            "requiredRole": "FREE",
+            "order": 1,
+            "createdAt": "2025-01-28T10:00:00.000Z",
+            "updatedAt": "2025-01-28T10:00:00.000Z",
+            "videoUrl": "",
+            "streamId": "",
+            "thumbnail": ""
+          }
+        ]
+      },
+      {
+        "chapterNumber": "chapter2",
+        "showName": "chapter2",
+        "description": "",
+        "status": "DRAFT",
+        "requiredRole": "FREE",
+        "order": 2,
+        "createdAt": "2025-08-28T02:23:17.866Z",
+        "updatedAt": "2025-08-28T02:23:17.866Z",
+        "lessons": []
+      }
+    ]
+  },
+  "updatedAt": "2025-08-28T02:23:17.866Z"
+}

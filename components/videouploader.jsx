@@ -73,14 +73,29 @@ export default function VideoUploader() {
         className="cursor-pointer block"
       >
         {uploading ? (
-          <div className="space-y-2">
-            <div className="w-full bg-gray-200 rounded-full h-2.5">
-              <div
-                className="bg-blue-600 h-2.5 rounded-full"
-                style={{ width: `${progress}%` }}
+          <div className="space-y-3">
+            <div className="relative w-20 h-20 mx-auto">
+              {/* 圆形进度指示器背景 */}
+              <div className="absolute inset-0 rounded-full border-4 border-gray-200"></div>
+              {/* 圆形进度指示器 */}
+              <div 
+                className="absolute inset-0 rounded-full border-4 border-blue-600 border-t-transparent animate-spin"
+                style={{
+                  background: `conic-gradient(from 0deg, #2563eb ${progress * 3.6}deg, transparent ${progress * 3.6}deg)`
+                }}
               ></div>
+              {/* 中心上传图标 */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <svg className="w-8 h-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+              </div>
+              {/* 进度百分比 */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-xs font-bold text-blue-600 mt-8">{progress}%</span>
+              </div>
             </div>
-            <span>上传中... {progress}%</span>
+            <span className="text-blue-600 font-medium">上传中...</span>
           </div>
         ) : (
           <div className="space-y-2">

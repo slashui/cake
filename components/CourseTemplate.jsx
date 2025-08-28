@@ -5,7 +5,7 @@ import CourseSidebar from '@/components/CourseSidebar'
 import { MDXRemote } from 'next-mdx-remote'
 import { serialize } from 'next-mdx-remote/serialize'
 import matter from 'gray-matter'
-import CloudflarePlayer from '@/components/CloudflarePlayer'
+import EnhancedCloudflarePlayer from '@/components/EnhancedCloudflarePlayer'
 
 const components = {
   h1: (props) => <h1 className="text-3xl font-bold my-4" {...props} />,
@@ -142,7 +142,7 @@ const CourseTemplate = ({
           <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
             <div className="aspect-w-16 aspect-h-9 mb-8">
               <div className="w-full bg-gray-100 rounded-lg">
-                <CloudflarePlayer 
+                <EnhancedCloudflarePlayer 
                   videoUrl={currentLesson?.videoUrl} 
                   streamId={currentLesson?.streamId}
                   thumbnail={currentLesson?.thumbnail}

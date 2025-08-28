@@ -47,7 +47,6 @@ const CloudflarePlayer = ({ videoUrl, streamId, thumbnail, className = "" }) => 
         <div className="text-center">
           <div className="text-4xl mb-2">📹</div>
           <p className="text-gray-500">暂无视频内容</p>
-          <p className="text-xs text-gray-400 mt-2">调试信息: videoUrl={videoUrl || 'undefined'}, streamId={streamId || 'undefined'}</p>
         </div>
       </div>
     );
@@ -90,8 +89,6 @@ const CloudflarePlayer = ({ videoUrl, streamId, thumbnail, className = "" }) => 
             <div className="text-4xl mb-2">⚠️</div>
             <p className="text-red-600 mb-2">视频加载失败</p>
             <p className="text-xs text-gray-500">错误: {videoError}</p>
-            <p className="text-xs text-gray-400 mt-2">StreamID: {currentStreamId}</p>
-            <p className="text-xs text-gray-400">VideoURL: {videoUrl}</p>
           </div>
         </div>
       ) : (

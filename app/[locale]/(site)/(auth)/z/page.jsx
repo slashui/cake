@@ -152,35 +152,7 @@ export default function Register() {
                                     />
                                 </div>
 
-                                <div>
-                                    <label className="text-gray-700 font-medium block mb-3">
-                                        选择会员等级
-                                    </label>
-                                    <div className="flex space-x-6">
-                                        <label className="flex items-center cursor-pointer">
-                                            <input
-                                                type="radio"
-                                                name="user_level"
-                                                value="VIP"
-                                                checked={data.user_level === 'VIP'}
-                                                onChange={e => setData({ ...data, user_level: e.target.value })}
-                                                className="w-4 h-4 text-[#845eee] border-gray-300 focus:ring-[#845eee] focus:ring-2"
-                                            />
-                                            <span className="ml-2 text-gray-700 font-medium">VIP会员</span>
-                                        </label>
-                                        <label className="flex items-center cursor-pointer">
-                                            <input
-                                                type="radio"
-                                                name="user_level"
-                                                value="Prime"
-                                                checked={data.user_level === 'Prime'}
-                                                onChange={e => setData({ ...data, user_level: e.target.value })}
-                                                className="w-4 h-4 text-[#845eee] border-gray-300 focus:ring-[#845eee] focus:ring-2"
-                                            />
-                                            <span className="ml-2 text-gray-700 font-medium">Prime会员</span>
-                                        </label>
-                                    </div>
-                                </div>
+                                
                             </div>
 
                             <button

@@ -38,6 +38,16 @@
             "createdAt": "2025-08-27T07:39:26.435Z",
             "updatedAt": "2025-08-27T07:39:39.125Z",
             "videoUrl": ""
+          },
+          {
+            "lessonNumber": "lesson3",
+            "showName": "新课时",
+            "duration": "30分钟",
+            "url": "/cn/course/chapter1/lesson3",
+            "requiredRole": "FREE",
+            "order": 3,
+            "createdAt": "2025-08-28T03:31:51.514Z",
+            "updatedAt": "2025-08-28T03:31:51.514Z"
           }
         ]
       },
@@ -72,10 +82,52 @@
             "createdAt": "2025-08-27T07:43:46.288Z",
             "updatedAt": "2025-08-27T07:43:56.463Z",
             "videoUrl": ""
+          },
+          {
+            "lessonNumber": "lesson3",
+            "showName": "新课时",
+            "duration": "30分钟",
+            "url": "/cn/course/chapter2/lesson3",
+            "requiredRole": "FREE",
+            "order": 3,
+            "createdAt": "2025-08-28T03:31:54.188Z",
+            "updatedAt": "2025-08-28T03:31:54.188Z"
+          },
+          {
+            "lessonNumber": "lesson4",
+            "showName": "新课时",
+            "duration": "30分钟",
+            "url": "/cn/course/chapter2/lesson4",
+            "requiredRole": "FREE",
+            "order": 4,
+            "createdAt": "2025-08-28T03:31:58.137Z",
+            "updatedAt": "2025-08-28T03:31:58.137Z"
           }
         ]
+      },
+      {
+        "chapterNumber": "chapter3",
+        "showName": "chapter3",
+        "description": "",
+        "status": "DRAFT",
+        "requiredRole": "FREE",
+        "order": 3,
+        "createdAt": "2025-08-28T03:31:49.015Z",
+        "updatedAt": "2025-08-28T03:31:49.015Z",
+        "lessons": []
+      },
+      {
+        "chapterNumber": "chapter4",
+        "showName": "chapter4",
+        "description": "",
+        "status": "DRAFT",
+        "requiredRole": "FREE",
+        "order": 4,
+        "createdAt": "2025-08-28T03:32:11.824Z",
+        "updatedAt": "2025-08-28T03:32:11.824Z",
+        "lessons": []
       }
     ]
   },
-  "updatedAt": "2025-08-27T08:04:28.923Z"
+  "updatedAt": "2025-08-28T03:32:11.825Z"
 }

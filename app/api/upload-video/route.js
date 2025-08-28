@@ -43,7 +43,8 @@ export async function POST(request) {
         uploadFormData.append('meta', JSON.stringify({
             name: `Lesson Video - ${lessonId}`,
             requireSignedURLs: false,
-            allowedOrigins: ['*']
+            allowedOrigins: [],  // 空数组表示允许所有域名
+            thumbnailTimestampPct: 0.1
         }))
 
         const uploadResponse = await fetch(streamUploadUrl, {

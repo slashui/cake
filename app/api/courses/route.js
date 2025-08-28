@@ -66,6 +66,12 @@ export async function GET(request) {
             try {
               const structure = await getCourseStructure(course.courseId);
               const metadata = await getCourseMetadata(course.courseId);
+              
+              // 过滤掉已软删除的课程
+              if (metadata.deleted) {
+                return null;
+              }
+              
               return {
                 ...course,
                 fileSystemStructure: structure,
@@ -77,7 +83,10 @@ export async function GET(request) {
             }
           })
         );
-        return NextResponse.json(coursesWithStructure);
+        
+        // 过滤掉 null 值（已删除的课程）
+        const filteredCourses = coursesWithStructure.filter(course => course !== null);
+        return NextResponse.json(filteredCourses);
       }
       
       return NextResponse.json(courses);

@@ -4,7 +4,7 @@ import { updateLessonMetadata } from '../../../../../libs/courseFileSystem';
 export async function PUT(request, { params }) {
   try {
     const { courseId } = params;
-    const { chapterNumber, lessonNumber, showName, duration, videoUrl } = await request.json();
+    const { chapterNumber, lessonNumber, showName, duration, videoUrl, streamId, thumbnail } = await request.json();
     
     if (!chapterNumber || !lessonNumber) {
       return NextResponse.json(
@@ -23,6 +23,12 @@ export async function PUT(request, { params }) {
     }
     if (videoUrl !== undefined) {
       updates.videoUrl = videoUrl;
+    }
+    if (streamId !== undefined) {
+      updates.streamId = streamId;
+    }
+    if (thumbnail !== undefined) {
+      updates.thumbnail = thumbnail;
     }
     
     // 更新课时元数据
