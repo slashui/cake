@@ -15,3 +15,7 @@ coverage
 .parcel-cache
 .DS_Store
 *.log
+
+# 忽略课程目录下的所有内容（除了页面组件）
+app/*/\(dashboard\)/\(route\)/course/*/
+!app/*/\(dashboard\)/\(route\)/course/\[courseId\]/
