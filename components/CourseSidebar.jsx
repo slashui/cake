@@ -46,12 +46,12 @@ const CourseSidebar = ({ courseId, courseData, currentChapter, currentLesson, lo
   }
 
   return (
-    <div className="flex flex-col h-screen bg-[#fff] border-r-2 border-dark overflow-auto relative w-80 flex-shrink-0">
+    <div className="flex flex-col h-screen bg-gradient-to-b from-white to-pink-50 border-r-2 border-pink-200 overflow-auto relative w-80 flex-shrink-0 shadow-lg">
       {/* 移动端关闭按钮 */}
       <div className="lg:hidden absolute top-4 right-4 z-10">
         <button
           onClick={onClose}
-          className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200"
+          className="p-2 bg-pink-100 rounded-xl hover:bg-pink-200 shadow-sm transition-all duration-300"
         >
           <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -68,7 +68,7 @@ const CourseSidebar = ({ courseId, courseData, currentChapter, currentLesson, lo
         {/* 课程标题 */}
         <div className="mx-8 mb-6">
           <div className="flex items-center space-x-2 mb-2">
-            <BookOpenIcon className="w-6 h-6 text-[#9458FE]" />
+            <BookOpenIcon className="w-6 h-6 text-pink-500" />
             <h2 className="text-lg font-bold text-[#302645]">
               {courseData?.title || `课程 ${courseId}`}
             </h2>
@@ -113,7 +113,7 @@ const CourseSidebar = ({ courseId, courseData, currentChapter, currentLesson, lo
                 <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
                   expandedChapters.has(chapter.chapterNumber) ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'
                 }`}>
-                  <div className="p-3 text-xs text-gray-600">课时列表</div>
+                  <div className="p-3 text-xs text-pink-600 font-medium">🌸 课时列表</div>
                   <ul className="px-3 pb-3 space-y-2">
                     {chapter.lessons?.map((lesson) => {
                       const isCurrentLesson = currentChapter === chapter.chapterNumber && currentLesson === lesson.lessonNumber
@@ -124,8 +124,8 @@ const CourseSidebar = ({ courseId, courseData, currentChapter, currentLesson, lo
                         >
                           <li className={`flex items-center gap-2 p-2 rounded-lg transition-colors cursor-pointer group ${
                             isCurrentLesson 
-                              ? 'bg-[#9458FE] text-white shadow-md' 
-                              : 'hover:bg-gray-100'
+                              ? 'bg-gradient-to-r from-pink-400 to-purple-400 text-white shadow-md' 
+                              : 'hover:bg-pink-50'
                           }`}>
                             <img 
                               src="/play.svg" 

@@ -85,7 +85,7 @@ const CourseTemplate = ({
   console.log('Mobile menu state:', isMobileMenuOpen)
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-gradient-to-br from-pink-50 to-purple-50">
       {/* 移动端遮罩层 */}
       {isMobileMenuOpen && (
         <div 
@@ -139,7 +139,7 @@ const CourseTemplate = ({
             locale={locale}
           />
 
-          <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+          <div className="bg-white rounded-2xl shadow-xl p-6 mb-8 border border-pink-100">
             <div className="aspect-w-16 aspect-h-9 mb-8">
               <div className="w-full bg-gray-100 rounded-lg">
                 <EnhancedCloudflarePlayer 
@@ -149,6 +149,44 @@ const CourseTemplate = ({
                 />
               </div>
             </div>
+
+            {/* 课件材料区域 */}
+            {currentLesson?.materials && currentLesson.materials.length > 0 && (
+              <div className="mb-6 p-6 bg-gradient-to-r from-pink-50 to-purple-50 rounded-2xl border border-pink-100">
+                <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center">
+                  <span className="text-xl mr-2">📚</span>
+                  课件资料
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {currentLesson.materials.map((material, index) => (
+                    <div key={index} className="flex items-center p-4 bg-white border border-pink-200 rounded-xl hover:shadow-lg hover:border-pink-300 transition-all duration-300">
+                      <div className="flex-shrink-0 mr-3 text-2xl">
+                        {material.type?.includes('pdf') ? '📄' : 
+                         material.type?.includes('word') || material.type?.includes('document') ? '📝' :
+                         material.type?.includes('excel') || material.type?.includes('sheet') ? '📊' :
+                         material.type?.includes('powerpoint') || material.type?.includes('presentation') ? '📊' :
+                         material.type?.includes('image') ? '🖼️' :
+                         material.type?.includes('zip') || material.type?.includes('rar') ? '🗜️' : '📎'}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-sm font-medium text-gray-900 truncate">{material.originalName}</h4>
+                        <p className="text-xs text-gray-500">
+                          {material.size ? `${(material.size / 1024 / 1024).toFixed(2)} MB` : ''}
+                        </p>
+                      </div>
+                      <a
+                        href={material.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="ml-2 px-3 py-1 text-xs bg-gradient-to-r from-pink-400 to-purple-400 text-white rounded-lg hover:from-pink-500 hover:to-purple-500 transition-all duration-300 shadow-sm"
+                      >
+                        下载
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {isProcessing ? (
               <div className="prose max-w-none">

@@ -669,7 +669,7 @@ export default function AdminDashboard() {
               ? 'bg-green-50 border border-green-200 text-green-800'
               : toast.type === 'error'
               ? 'bg-red-50 border border-red-200 text-red-800'
-              : 'bg-blue-50 border border-blue-200 text-blue-800'
+              : 'bg-gradient-to-r from-pink-50 to-purple-50 border border-pink-200 text-pink-800'
           }`}
         >
           <span className="flex-1">{toast.message}</span>
@@ -707,7 +707,7 @@ export default function AdminDashboard() {
                 type="text"
                 value={formData.courseId}
                 onChange={(e) => setFormData({...formData, courseId: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-pink-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500"
                 placeholder="例如: javascript-basic"
                 pattern="^[a-z0-9-]+$"
                 title="只能包含小写字母、数字和连字符"
@@ -720,7 +720,7 @@ export default function AdminDashboard() {
                 type="text"
                 value={formData.title}
                 onChange={(e) => setFormData({...formData, title: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-pink-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500"
                 placeholder="输入课程标题"
               />
             </div>
@@ -730,7 +730,7 @@ export default function AdminDashboard() {
               <textarea
                 value={formData.description}
                 onChange={(e) => setFormData({...formData, description: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-pink-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500"
                 rows="3"
                 placeholder="输入课程描述"
               />
@@ -742,7 +742,7 @@ export default function AdminDashboard() {
                 type="number"
                 value={formData.price}
                 onChange={(e) => setFormData({...formData, price: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-pink-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500"
                 placeholder="0"
                 min="0"
                 step="0.01"
@@ -755,7 +755,7 @@ export default function AdminDashboard() {
                 type="text"
                 value={formData.category}
                 onChange={(e) => setFormData({...formData, category: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-pink-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500"
                 placeholder="例如：编程、设计"
               />
             </div>
@@ -764,14 +764,14 @@ export default function AdminDashboard() {
           <div className="flex justify-end space-x-3 mt-6">
             <button
               onClick={() => setShowCourseModal(false)}
-              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+              className="px-4 py-2 border border-pink-200 rounded-xl text-gray-700 hover:bg-gray-50"
             >
               取消
             </button>
             <button
               onClick={() => createCourse(formData)}
               disabled={!formData.courseId || !formData.title}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+              className="px-4 py-2 bg-gradient-to-r from-pink-400 to-purple-400 text-white rounded-xl hover:from-pink-500 hover:to-purple-500 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed shadow-md transition-all duration-300"
             >
               创建课程
             </button>
@@ -785,7 +785,7 @@ export default function AdminDashboard() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">加载中...</p>
         </div>
       </div>
@@ -815,18 +815,18 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
+    <div className="flex flex-col h-screen bg-gradient-to-br from-pink-50 to-purple-50">
       {/* Top Navigation Bar */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
+      <div className="bg-white border-b border-pink-100 px-6 py-4 shadow-sm">
         <div className="flex items-center justify-between">
           {/* Left side - Tab navigation */}
           <div className="flex space-x-1">
             <button
               onClick={() => setActiveTab('courses')}
-              className={`px-4 py-2 text-sm rounded-md transition-colors ${
+              className={`px-4 py-2 text-sm rounded-xl transition-colors ${
                 activeTab === 'courses'
-                  ? 'bg-blue-100 text-blue-700'
-                  : 'text-gray-600 hover:bg-gray-100'
+                  ? 'bg-gradient-to-r from-pink-100 to-purple-100 text-pink-700 shadow-sm'
+                  : 'text-gray-600 hover:bg-pink-50'
               }`}
             >
               <BookOpen className="w-4 h-4 inline mr-2" />
@@ -834,10 +834,10 @@ export default function AdminDashboard() {
             </button>
             <button
               onClick={() => setActiveTab('users')}
-              className={`px-4 py-2 text-sm rounded-md transition-colors ${
+              className={`px-4 py-2 text-sm rounded-xl transition-colors ${
                 activeTab === 'users'
-                  ? 'bg-blue-100 text-blue-700'
-                  : 'text-gray-600 hover:bg-gray-100'
+                  ? 'bg-gradient-to-r from-pink-100 to-purple-100 text-pink-700 shadow-sm'
+                  : 'text-gray-600 hover:bg-pink-50'
               }`}
             >
               <Users className="w-4 h-4 inline mr-2" />
@@ -845,9 +845,9 @@ export default function AdminDashboard() {
             </button>
             <button
               onClick={() => window.location.href = '/cn/invite-codes'}
-              className={`px-4 py-2 text-sm rounded-md transition-colors ${
+              className={`px-4 py-2 text-sm rounded-xl transition-colors ${
                 activeTab === 'invites'
-                  ? 'bg-blue-100 text-blue-700'
+                  ? 'bg-gradient-to-r from-pink-100 to-purple-100 text-pink-700 shadow-sm'
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
@@ -864,14 +864,14 @@ export default function AdminDashboard() {
             </div>
             <button
               onClick={() => setShowCourseModal(true)}
-              className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm flex items-center"
+              className="px-3 py-2 bg-gradient-to-r from-pink-400 to-purple-400 text-white rounded-xl hover:from-pink-500 hover:to-purple-500 text-sm flex items-center shadow-md transition-all duration-300"
             >
               <Plus className="w-4 h-4 mr-1" />
               新建课程
             </button>
             <button
               onClick={() => signOut({ callbackUrl: '/cn/login' })}
-              className="px-3 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm flex items-center"
+              className="px-3 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 text-sm flex items-center"
             >
               <LogOut className="w-4 h-4 mr-1" />
               退出
@@ -886,7 +886,7 @@ export default function AdminDashboard() {
           // 用户管理界面
           <>
             {/* Left Panel - User Search */}
-            <div className="w-1/3 bg-white border-r border-gray-200 overflow-y-auto">
+            <div className="w-1/3 bg-white border-r border-pink-200 overflow-y-auto">
               <div className="p-4">
                 <h2 className="text-lg font-semibold mb-3">用户搜索</h2>
                 
@@ -901,13 +901,13 @@ export default function AdminDashboard() {
                         value={userSearchEmail}
                         onChange={(e) => setUserSearchEmail(e.target.value)}
                         placeholder="输入用户邮箱地址"
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="flex-1 px-3 py-2 border border-pink-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-400"
                         onKeyDown={(e) => e.key === 'Enter' && searchUser()}
                       />
                       <button
                         onClick={searchUser}
                         disabled={searchingUser}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 flex items-center"
+                        className="px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-xl hover:from-pink-600 hover:to-purple-600 disabled:from-gray-400 disabled:to-gray-500 flex items-center shadow-md transition-all duration-300"
                       >
                         {searchingUser ? (
                           <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -922,13 +922,13 @@ export default function AdminDashboard() {
             </div>
 
             {/* Middle Panel - User Details */}
-            <div className="w-1/3 bg-white border-r border-gray-200 overflow-y-auto">
+            <div className="w-1/3 bg-white border-r border-pink-200 overflow-y-auto">
               {selectedUser ? (
                 <div className="p-4">
                   <h2 className="text-lg font-semibold mb-3">用户详情</h2>
                   
                   {/* 用户基本信息 */}
-                  <div className="bg-gray-50 p-4 rounded-lg mb-4">
+                  <div className="bg-gradient-to-br from-pink-50 to-purple-50 p-4 rounded-xl mb-4 border border-pink-100">
                     <h3 className="font-medium text-gray-900 mb-2">基本信息</h3>
                     <div className="space-y-2 text-sm">
                       <div>
@@ -966,7 +966,7 @@ export default function AdminDashboard() {
                       <h3 className="font-medium text-gray-900">拥有课程 ({selectedUser.courses?.length || 0})</h3>
                       <button
                         onClick={() => setShowAddCourseModal(true)}
-                        className="px-3 py-1 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm flex items-center"
+                        className="px-3 py-1 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-xl hover:from-pink-600 hover:to-purple-600 text-sm flex items-center shadow-md transition-all duration-300"
                       >
                         <UserPlus className="w-4 h-4 mr-1" />
                         添加课程
@@ -978,7 +978,7 @@ export default function AdminDashboard() {
                         selectedUser.courses.map((course) => (
                           <div
                             key={course.id}
-                            className="p-3 bg-white border border-gray-200 rounded-lg"
+                            className="p-3 bg-white border border-pink-200 rounded-xl shadow-sm"
                           >
                             <div className="flex items-center justify-between">
                               <div className="flex-1">
@@ -999,7 +999,7 @@ export default function AdminDashboard() {
                               </div>
                               <button
                                 onClick={() => removeCourseFromUser(course.id)}
-                                className="p-1 text-red-600 hover:text-red-800 hover:bg-red-100 rounded"
+                                className="p-1 text-red-600 hover:text-red-800 hover:bg-red-100 rounded-lg transition-all duration-300 hover:scale-110"
                                 title="移除课程"
                               >
                                 <UserMinus className="w-4 h-4" />
@@ -1056,7 +1056,7 @@ export default function AdminDashboard() {
           // 原有的课程管理界面
           <>
         {/* Left Panel - Course List */}
-        <div className="w-1/3 bg-white border-r border-gray-200 overflow-y-auto">
+        <div className="w-1/3 bg-white border-r border-pink-200 overflow-y-auto">
           <div className="p-4">
             <h2 className="text-lg font-semibold mb-3">课程列表</h2>
             
@@ -1064,10 +1064,10 @@ export default function AdminDashboard() {
               {courses.map((course) => (
                 <div
                   key={course.id}
-                  className={`p-3 rounded-lg border cursor-pointer transition-colors ${
+                  className={`p-3 rounded-xl border cursor-pointer transition-all duration-300 shadow-sm hover:shadow-md ${
                     selectedCourse?.id === course.id
-                      ? 'bg-blue-50 border-blue-200'
-                      : 'bg-white border-gray-200 hover:bg-gray-50'
+                      ? 'bg-gradient-to-br from-pink-50 to-purple-50 border-pink-300'
+                      : 'bg-white border-pink-200 hover:bg-gradient-to-br hover:from-pink-25 hover:to-purple-25'
                   }`}
                   onClick={() => {
                     setSelectedCourse(course)
@@ -1125,10 +1125,10 @@ export default function AdminDashboard() {
         </div>
 
         {/* Middle Panel - Course Structure */}
-        <div className="w-1/3 bg-white border-r border-gray-200 overflow-y-auto">
+        <div className="w-1/3 bg-white border-r border-pink-200 overflow-y-auto">
           {selectedCourse ? (
             <>
-              <div className="p-4 border-b border-gray-200">
+              <div className="p-4 border-b border-pink-200">
                 <div className="flex justify-between items-center">
                   <div>
                     <h2 className="text-lg font-semibold">{selectedCourse.title}</h2>
@@ -1136,7 +1136,7 @@ export default function AdminDashboard() {
                   </div>
                   <button
                     onClick={addChapter}
-                    className="flex items-center px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
+                    className="flex items-center px-3 py-2 bg-gradient-to-r from-pink-400 to-purple-400 text-white rounded-xl hover:from-pink-500 hover:to-purple-500 text-sm shadow-md transition-all duration-300"
                   >
                     <Plus className="w-4 h-4 mr-1" />
                     添加章节
@@ -1149,10 +1149,10 @@ export default function AdminDashboard() {
                   <div key={chapter.chapterNumber} className="mb-4">
                     {/* Chapter Header */}
                     <div 
-                      className={`p-3 rounded-lg border cursor-pointer transition-colors ${
+                      className={`p-3 rounded-xl border cursor-pointer transition-all duration-300 ${
                         selectedItem?.type === 'chapter' && selectedItem?.chapterNumber === chapter.chapterNumber
-                          ? 'bg-blue-50 border-blue-200'
-                          : 'bg-gray-50 border-transparent hover:bg-gray-100'
+                          ? 'bg-gradient-to-br from-pink-50 to-purple-50 border-pink-300 shadow-sm'
+                          : 'bg-gray-50 border-transparent hover:bg-gradient-to-br hover:from-pink-25 hover:to-purple-25'
                       }`}
                       onClick={() => selectItem('chapter', chapter.chapterNumber)}
                     >
@@ -1186,7 +1186,7 @@ export default function AdminDashboard() {
                                 type="text"
                                 value={editName}
                                 onChange={(e) => setEditName(e.target.value)}
-                                className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded"
+                                className="flex-1 px-2 py-1 text-sm border border-pink-200 rounded"
                                 onKeyPress={(e) => {
                                   if (e.key === 'Enter') {
                                     // saveChapterName(chapter.chapterNumber, editName)
@@ -1230,7 +1230,7 @@ export default function AdminDashboard() {
                               e.stopPropagation()
                               addLesson(chapter.chapterNumber)
                             }}
-                            className="p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded"
+                            className="p-1 text-pink-600 hover:text-pink-800 hover:bg-pink-100 rounded-lg transition-all duration-300"
                             title="添加课程"
                           >
                             <Plus className="w-4 h-4" />
@@ -1255,12 +1255,12 @@ export default function AdminDashboard() {
                         {chapter.lessons.map((lesson) => (
                           <div
                             key={lesson.lessonNumber}
-                            className={`p-2 rounded-lg border cursor-pointer transition-colors ${
+                            className={`p-2 rounded-xl border cursor-pointer transition-all duration-300 shadow-sm hover:shadow-md ${
                               selectedItem?.type === 'lesson' && 
                               selectedItem?.chapterNumber === chapter.chapterNumber && 
                               selectedItem?.lessonNumber === lesson.lessonNumber
-                                ? 'bg-blue-50 border-blue-200'
-                                : 'bg-white border-gray-200 hover:bg-gray-50'
+                                ? 'bg-gradient-to-br from-pink-50 to-purple-50 border-pink-300'
+                                : 'bg-white border-pink-200 hover:bg-gradient-to-br hover:from-pink-25 hover:to-purple-25'
                             }`}
                             onClick={() => selectItem('lesson', chapter.chapterNumber, lesson.lessonNumber)}
                           >
@@ -1271,7 +1271,7 @@ export default function AdminDashboard() {
                                     type="text"
                                     value={editName}
                                     onChange={(e) => setEditName(e.target.value)}
-                                    className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded"
+                                    className="flex-1 px-2 py-1 text-sm border border-pink-200 rounded"
                                     onKeyPress={(e) => {
                                       if (e.key === 'Enter') {
                                         // saveLessonName(chapter.chapterNumber, lesson.lessonNumber, editName)
@@ -1315,7 +1315,7 @@ export default function AdminDashboard() {
                                   e.stopPropagation()
                                   showDeleteConfirm('lesson', lesson.title || lesson.showName || lesson.lessonNumber, selectedCourse.courseId, chapter.chapterNumber, lesson.lessonNumber)
                                 }}
-                                className="p-1 text-red-600 hover:text-red-800 hover:bg-red-100 rounded"
+                                className="p-1 text-red-600 hover:text-red-800 hover:bg-red-100 rounded-lg transition-all duration-300 hover:scale-110"
                                 title="删除课时"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -1344,7 +1344,7 @@ export default function AdminDashboard() {
               {selectedItem.type === 'course' ? (
                 // Course Editor
                 <>
-                  <div className="border-b border-gray-200 pb-4 mb-6">
+                  <div className="border-b border-pink-200 pb-4 mb-6">
                     <h2 className="text-xl font-semibold text-gray-900">课程编辑</h2>
                     <p className="text-gray-600 mt-1">编辑课程基本信息</p>
                   </div>
@@ -1357,7 +1357,7 @@ export default function AdminDashboard() {
                         type="text"
                         value={selectedCourse?.courseId || ''}
                         disabled
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-500 cursor-not-allowed"
+                        className="w-full px-3 py-2 border border-pink-200 rounded-xl bg-gray-50 text-gray-500 cursor-not-allowed"
                       />
                       <p className="text-xs text-gray-500 mt-1">课程ID不可修改</p>
                     </div>
@@ -1370,7 +1370,7 @@ export default function AdminDashboard() {
                         value={courseEditor.title}
                         onChange={(e) => setCourseEditor({...courseEditor, title: e.target.value})}
                         placeholder="输入课程标题"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-pink-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500"
                       />
                     </div>
                     
@@ -1382,7 +1382,7 @@ export default function AdminDashboard() {
                         value={courseEditor.description}
                         onChange={(e) => setCourseEditor({...courseEditor, description: e.target.value})}
                         placeholder="输入课程描述，向学员介绍这门课程的内容和特色"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-pink-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500"
                       />
                     </div>
 
@@ -1398,7 +1398,7 @@ export default function AdminDashboard() {
                           value={courseEditor.price || ''}
                           onChange={(e) => setCourseEditor({...courseEditor, price: e.target.value ? parseFloat(e.target.value) : null})}
                           placeholder="0.00"
-                          className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full pl-8 pr-3 py-2 border border-pink-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500"
                         />
                       </div>
                       <p className="text-xs text-gray-500 mt-1">设置为0或留空表示免费课程</p>
@@ -1412,7 +1412,7 @@ export default function AdminDashboard() {
                         value={courseEditor.category || ''}
                         onChange={(e) => setCourseEditor({...courseEditor, category: e.target.value})}
                         placeholder="例如：编程、设计、商业等"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-pink-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500"
                       />
                     </div>
                     
@@ -1432,7 +1432,7 @@ export default function AdminDashboard() {
                               value={status.value}
                               checked={courseEditor.status === status.value}
                               onChange={(e) => setCourseEditor({...courseEditor, status: e.target.value})}
-                              className="mt-0.5 h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                              className="mt-0.5 h-4 w-4 text-pink-600 border-pink-300 focus:ring-pink-500"
                             />
                             <div className="ml-3">
                               <span className={`text-sm font-medium ${status.color}`}>
@@ -1475,7 +1475,7 @@ export default function AdminDashboard() {
                     {/* 保存按钮 */}
                     <button
                       onClick={saveCourseEditor}
-                      className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                      className="w-full px-4 py-2 bg-gradient-to-r from-pink-400 to-purple-400 text-white rounded-xl hover:from-pink-500 hover:to-purple-500 focus:outline-none focus:ring-2 focus:ring-pink-500 transition-colors"
                     >
                       保存课程信息
                     </button>
@@ -1484,7 +1484,7 @@ export default function AdminDashboard() {
               ) : selectedItem.type === 'chapter' ? (
                 // Chapter Editor
                 <>
-                  <div className="border-b border-gray-200 pb-4 mb-6">
+                  <div className="border-b border-pink-200 pb-4 mb-6">
                     <h2 className="text-xl font-semibold text-gray-900">章节编辑</h2>
                     <p className="text-gray-600 mt-1">编辑章节信息</p>
                   </div>
@@ -1496,7 +1496,7 @@ export default function AdminDashboard() {
                         type="text"
                         value={chapterEditData.showName}
                         onChange={(e) => setChapterEditData({...chapterEditData, showName: e.target.value})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-pink-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500"
                         placeholder="输入章节名称"
                       />
                     </div>
@@ -1507,14 +1507,14 @@ export default function AdminDashboard() {
                         rows={4}
                         value={chapterEditData.description}
                         onChange={(e) => setChapterEditData({...chapterEditData, description: e.target.value})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-pink-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500"
                         placeholder="输入章节描述"
                       />
                     </div>
                     
                     <button
                       onClick={saveChapterInfo}
-                      className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                      className="w-full px-4 py-2 bg-gradient-to-r from-pink-400 to-purple-400 text-white rounded-xl hover:from-pink-500 hover:to-purple-500"
                     >
                       保存章节信息
                     </button>
@@ -1523,7 +1523,7 @@ export default function AdminDashboard() {
               ) : (
                 // Lesson Editor
                 <>
-                  <div className="border-b border-gray-200 pb-4 mb-6">
+                  <div className="border-b border-pink-200 pb-4 mb-6">
                     <h2 className="text-xl font-semibold text-gray-900">课时编辑</h2>
                     <p className="text-gray-600 mt-1">编辑课时信息和内容</p>
                   </div>
@@ -1535,7 +1535,7 @@ export default function AdminDashboard() {
                         type="text"
                         value={lessonEditData.showName}
                         onChange={(e) => setLessonEditData({...lessonEditData, showName: e.target.value})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-pink-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500"
                         placeholder="输入课时名称"
                       />
                     </div>
@@ -1546,7 +1546,7 @@ export default function AdminDashboard() {
                         type="text"
                         value={lessonEditData.duration}
                         onChange={(e) => setLessonEditData({...lessonEditData, duration: e.target.value})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-pink-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500"
                         placeholder="例如：30分钟"
                       />
                     </div>
@@ -1577,14 +1577,14 @@ export default function AdminDashboard() {
                         rows={12}
                         value={mdxContent}
                         onChange={(e) => setMdxContent(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+                        className="w-full px-3 py-2 border border-pink-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 font-mono text-sm"
                         placeholder="输入课时内容，支持 Markdown 格式"
                       />
                     </div>
                     
                     <button
                       onClick={saveLessonInfo}
-                      className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                      className="w-full px-4 py-2 bg-gradient-to-r from-pink-400 to-purple-400 text-white rounded-xl hover:from-pink-500 hover:to-purple-500"
                     >
                       保存课时信息
                     </button>
@@ -1642,13 +1642,13 @@ export default function AdminDashboard() {
               <div className="flex justify-end space-x-3">
                 <button
                   onClick={hideDeleteConfirm}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="px-4 py-2 border border-pink-200 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors"
                 >
                   取消
                 </button>
                 <button
                   onClick={performSoftDelete}
-                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                  className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors"
                 >
                   确认删除
                 </button>
@@ -1672,8 +1672,8 @@ export default function AdminDashboard() {
                       key={course.id}
                       className={`p-3 border rounded-lg cursor-pointer transition-colors ${
                         userHasCourse
-                          ? 'bg-gray-100 border-gray-300 cursor-not-allowed'
-                          : 'bg-white border-gray-200 hover:bg-blue-50 hover:border-blue-300'
+                          ? 'bg-gray-100 border-pink-200 cursor-not-allowed'
+                          : 'bg-white border-pink-200 hover:bg-gradient-to-br hover:from-pink-50 hover:to-purple-50 hover:border-pink-300'
                       }`}
                       onClick={() => !userHasCourse && addCourseToUser(course.id)}
                     >
@@ -1708,7 +1708,7 @@ export default function AdminDashboard() {
               <div className="flex justify-end space-x-3 mt-6">
                 <button
                   onClick={() => setShowAddCourseModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                  className="px-4 py-2 border border-pink-200 rounded-xl text-gray-700 hover:bg-gray-50"
                 >
                   取消
                 </button>

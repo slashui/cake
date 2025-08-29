@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { updateLessonMetadata } from '../../../libs/courseFileSystem'
+import { updateLessonMetadata, clearCourseStructureCache } from '../../../libs/courseFileSystem'
 
 export async function POST(request) {
     try {
@@ -89,6 +89,9 @@ export async function POST(request) {
                         }
                     ]
                 })
+                
+                // 清除课程结构缓存
+                clearCourseStructureCache(courseId)
                 console.log(`✅ 已更新lesson metadata (mock): ${courseId}/${chapterNumber}/${lessonNumber}`)
             } catch (error) {
                 console.error('❌ 更新lesson metadata失败 (mock):', error)
@@ -152,6 +155,9 @@ export async function POST(request) {
             await updateLessonMetadata(courseId, chapterNumber, lessonNumber, {
                 materials: existingMetadata.materials
             })
+            
+            // 清除课程结构缓存，确保前端能获取到最新数据
+            clearCourseStructureCache(courseId)
             console.log(`✅ 已更新lesson metadata: ${courseId}/${chapterNumber}/${lessonNumber}`)
         } catch (error) {
             console.error('❌ 更新lesson metadata失败:', error)

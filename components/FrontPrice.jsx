@@ -24,14 +24,14 @@ const Home = () => {
       id: 1,
       product: { name: "基础版" },
       unit_amount: 19900,
-      bgColor: 'bg-gray-500',
+      bgColor: 'bg-gradient-to-r from-pink-400 to-purple-400',
       originalPrice: '299'
     },
     {
       id: 2,
       product: { name: "高级版" },
       unit_amount: 59900,
-      bgColor: 'bg-red-500',
+      bgColor: 'bg-gradient-to-r from-purple-400 to-pink-400',
       originalPrice: '899'
     }
   ];
@@ -70,7 +70,7 @@ const Home = () => {
 
   return (
    
-<div className="w-full flex dark:text-white p-6 flex-col mt-16"  id="price">
+<div className="w-full flex dark:text-white p-6 flex-col mt-16 bg-gradient-to-br from-pink-50 to-purple-50"  id="price">
   <h1 className='lg:text-5xl md:text-4xl mb-2 text-3xl mx-auto flex font-inter '>{t("PriceTitle")}</h1>
   <FrontGift />
   <div className="max-w-6xl w-full flex flex-col sm:flex-row md:mt-14 mt-6">

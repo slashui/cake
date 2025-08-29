@@ -26,10 +26,20 @@
             "requiredRole": "FREE",
             "order": 1,
             "createdAt": "2025-08-28T03:33:23.197Z",
-            "updatedAt": "2025-08-28T03:33:38.659Z",
+            "updatedAt": "2025-08-28T14:43:16.081Z",
             "videoUrl": "",
             "streamId": "",
-            "thumbnail": ""
+            "thumbnail": "",
+            "materials": [
+              {
+                "name": "__2025-08-22_16.33.07.png",
+                "originalName": "截屏2025-08-22 16.33.07.png",
+                "size": 48516,
+                "type": "image/png",
+                "url": "https://r2.0e422c62fd0877137d57cead3f42415f.com/course-materials/materials/11111111/chapter1-lesson1/1756392193552___2025-08-22_16.33.07.png",
+                "uploadedAt": "2025-08-28T14:43:16.081Z"
+              }
+            ]
           },
           {
             "lessonNumber": "lesson2",
@@ -39,10 +49,20 @@
             "requiredRole": "FREE",
             "order": 2,
             "createdAt": "2025-08-28T03:33:44.407Z",
-            "updatedAt": "2025-08-28T05:55:13.157Z",
+            "updatedAt": "2025-08-28T09:05:34.316Z",
             "videoUrl": "https://customer-0e422c62fd0877137d57cead3f42415f.cloudflarestream.com/a86ce043a00543f7b84e7e499a10ccde/manifest/video.m3u8",
             "streamId": "a86ce043a00543f7b84e7e499a10ccde",
-            "thumbnail": "https://customer-0e422c62fd0877137d57cead3f42415f.cloudflarestream.com/a86ce043a00543f7b84e7e499a10ccde/thumbnails/thumbnail.jpg"
+            "thumbnail": "https://customer-0e422c62fd0877137d57cead3f42415f.cloudflarestream.com/a86ce043a00543f7b84e7e499a10ccde/thumbnails/thumbnail.jpg",
+            "materials": [
+              {
+                "name": "_______.pdf",
+                "originalName": "途家网电子发票.pdf",
+                "size": 58998,
+                "type": "application/pdf",
+                "url": "https://r2.0e422c62fd0877137d57cead3f42415f.com/course-materials/materials/11111111/chapter1-lesson2/1756371924861________.pdf",
+                "uploadedAt": "2025-08-28T09:05:26.674Z"
+              }
+            ]
           }
         ]
       },
@@ -80,5 +100,5 @@
       }
     ]
   },
-  "updatedAt": "2025-08-28T05:55:13.157Z"
+  "updatedAt": "2025-08-28T14:43:16.081Z"
 }

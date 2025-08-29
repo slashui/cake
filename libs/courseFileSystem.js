@@ -474,6 +474,7 @@ export async function getCourseStructure(courseId) {
             videoUrl: lessonData.videoUrl,
             streamId: lessonData.streamId,
             thumbnail: lessonData.thumbnail,
+            materials: lessonData.materials || [],
             isPreview: lessonData.isPreview || false,
             requiredRole: lessonData.requiredRole || 'USER',
             url: lessonData.url || `/course/${courseId}/${chapterData.chapterNumber}/${lessonData.lessonNumber}`
@@ -535,6 +536,7 @@ export async function getCourseStructure(courseId) {
               videoUrl: lessonMetadata.videoUrl,
               streamId: lessonMetadata.streamId,
               thumbnail: lessonMetadata.thumbnail,
+              materials: lessonMetadata.materials || [],
               isPreview: lessonMetadata.isPreview || false,
               requiredRole: lessonMetadata.requiredRole || 'USER',
               url: lessonMetadata.url || `/course/${courseId}/${item.name}/${chapterItem.name}`

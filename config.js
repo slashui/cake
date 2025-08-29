@@ -27,8 +27,17 @@ const config = {
   // Below you can set the base background color and text color for dark and light.This can be a custom color, like: "#f37055". or a tailwindcss style name, like: "bg-primary-500"
   // Set the highlight color of the platform in main, if you think the default value is OK, you can not change it.
   colors: {
-    theme: "dark",
-    primary: "#EBFF00",
+    theme: "light",
+    primary: "#F8BBD9",
+    secondary: "#E1BEE7",
+    accent: "#A8E6CF",
+    background: "#FFF8F3",
+    surface: "#FFFFFF",
+    text: "#2D3748",
+    border: "#E2E8F0",
+    success: "#A8E6CF",
+    warning: "#FFE4B5",
+    error: "#FFB6C1",
   },
   
 

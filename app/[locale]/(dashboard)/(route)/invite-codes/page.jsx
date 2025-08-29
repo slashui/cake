@@ -197,9 +197,9 @@ export default function InviteCodesPage() {
 
   if (status === 'loading' || loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">加载中...</p>
         </div>
       </div>
@@ -208,7 +208,7 @@ export default function InviteCodesPage() {
 
   if (status !== 'authenticated') {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 flex items-center justify-center">
         <div className="text-center">
           <p className="text-gray-600">请先登录</p>
         </div>
@@ -217,28 +217,28 @@ export default function InviteCodesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50">
       {/* 头部导航 */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
+      <div className="bg-white border-b border-pink-100 px-6 py-4 shadow-sm">
         <div className="flex items-center justify-between">
           {/* Left side - Tab navigation */}
           <div className="flex space-x-1">
             <button
               onClick={() => window.location.href = '/cn/admin'}
-              className="px-4 py-2 text-sm rounded-md transition-colors text-gray-600 hover:bg-gray-100"
+              className="px-4 py-2 text-sm rounded-md transition-colors text-gray-600 hover:bg-pink-50"
             >
               <BookOpen className="w-4 h-4 inline mr-2" />
               课程管理
             </button>
             <button
               onClick={() => window.location.href = '/cn/admin'}
-              className="px-4 py-2 text-sm rounded-md transition-colors text-gray-600 hover:bg-gray-100"
+              className="px-4 py-2 text-sm rounded-md transition-colors text-gray-600 hover:bg-pink-50"
             >
               <Users className="w-4 h-4 inline mr-2" />
               用户管理
             </button>
             <button
-              className="px-4 py-2 text-sm rounded-md transition-colors bg-blue-100 text-blue-700"
+              className="px-4 py-2 text-sm rounded-md transition-colors bg-gradient-to-r from-pink-100 to-purple-100 text-pink-700 shadow-sm"
             >
               <Gift className="w-4 h-4 inline mr-2" />
               邀请码管理
@@ -253,7 +253,7 @@ export default function InviteCodesPage() {
             </div>
             <button
               onClick={() => signOut({ callbackUrl: '/cn/login' })}
-              className="px-3 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm flex items-center"
+              className="px-3 py-2 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-xl hover:from-red-600 hover:to-pink-600 text-sm flex items-center shadow-md transition-all duration-300"
             >
               <LogOut className="w-4 h-4 mr-1" />
               退出
@@ -266,9 +266,9 @@ export default function InviteCodesPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           
           {/* 左侧 - 生成邀请码 */}
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white rounded-xl shadow-lg p-6 border border-pink-100">
             <div className="flex items-center mb-6">
-              <Plus className="w-6 h-6 text-blue-600 mr-2" />
+              <Plus className="w-6 h-6 text-pink-600 mr-2" />
               <h2 className="text-xl font-semibold text-gray-900">生成新邀请码</h2>
             </div>
 
@@ -277,9 +277,9 @@ export default function InviteCodesPage() {
               <label className="block text-sm font-medium text-gray-700 mb-3">
                 选择课程 <span className="text-red-500">*</span>
               </label>
-              <div className="space-y-2 max-h-60 overflow-y-auto border rounded-md p-3">
+              <div className="space-y-2 max-h-60 overflow-y-auto border border-pink-200 rounded-xl p-3 bg-gradient-to-br from-pink-25 to-purple-25">
                 {courses.map((course) => (
-                  <label key={course.id} className="flex items-center p-2 hover:bg-gray-50 rounded">
+                  <label key={course.id} className="flex items-center p-2 hover:bg-pink-50 rounded-lg transition-colors">
                     <input
                       type="checkbox"
                       checked={selectedCoursesForInvite.has(course.id)}
@@ -292,7 +292,7 @@ export default function InviteCodesPage() {
                         }
                         setSelectedCoursesForInvite(newSelected)
                       }}
-                      className="mr-3 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      className="mr-3 h-4 w-4 text-pink-600 border-pink-300 rounded focus:ring-pink-500"
                     />
                     <div className="flex-1">
                       <div className="font-medium text-gray-900">{course.title}</div>
@@ -320,7 +320,7 @@ export default function InviteCodesPage() {
                 type="datetime-local"
                 value={inviteCodeExpiry}
                 onChange={(e) => setInviteCodeExpiry(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-pink-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-400"
               />
               <p className="text-xs text-gray-500 mt-1">不设置则永不过期</p>
             </div>
@@ -329,7 +329,7 @@ export default function InviteCodesPage() {
             <button
               onClick={generateInviteCode}
               disabled={generatingInviteCode || selectedCoursesForInvite.size === 0}
-              className="w-full px-4 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+              className="w-full px-4 py-3 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-xl hover:from-pink-600 hover:to-purple-600 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center shadow-md"
             >
               {generatingInviteCode ? (
                 <>
@@ -346,16 +346,16 @@ export default function InviteCodesPage() {
           </div>
 
           {/* 右侧 - 邀请码列表 */}
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white rounded-xl shadow-lg p-6 border border-pink-100">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center">
-                <Users className="w-6 h-6 text-green-600 mr-2" />
+                <Users className="w-6 h-6 text-pink-600 mr-2" />
                 <h2 className="text-xl font-semibold text-gray-900">邀请码列表</h2>
               </div>
               <button
                 onClick={loadInviteCodes}
                 disabled={loadingInviteCodes}
-                className="px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded hover:bg-gray-200 disabled:opacity-50"
+                className="px-3 py-1 text-sm bg-gradient-to-r from-pink-100 to-purple-100 text-pink-600 rounded-lg hover:from-pink-200 hover:to-purple-200 disabled:opacity-50 transition-all duration-300"
               >
                 {loadingInviteCodes ? '刷新中...' : '刷新'}
               </button>
@@ -375,10 +375,10 @@ export default function InviteCodesPage() {
                   const isExpired = invite.status === 'EXPIRED' || (invite.expiresAt && new Date() > new Date(invite.expiresAt))
                   
                   return (
-                  <div key={invite.id} className={`border-2 rounded-lg p-3 transition-all duration-200 ${
+                  <div key={invite.id} className={`border-2 rounded-xl p-4 transition-all duration-200 shadow-sm hover:shadow-md ${
                     isUsed || isExpired
                       ? 'border-gray-300 bg-gray-50' 
-                      : 'border-green-300 bg-green-50 hover:bg-green-100'
+                      : 'border-pink-300 bg-gradient-to-br from-pink-50 to-purple-50 hover:from-pink-100 hover:to-purple-100'
                   }`}>
                     {/* 使用状态标识 */}
                     <div className="flex items-center justify-between mb-2">
@@ -387,7 +387,7 @@ export default function InviteCodesPage() {
                           ? 'bg-red-200 text-red-800'
                           : isExpired
                           ? 'bg-orange-200 text-orange-800' 
-                          : 'bg-green-200 text-green-800'
+                          : 'bg-gradient-to-r from-pink-200 to-purple-200 text-pink-800'
                       }`}>
                         {isUsed ? (
                           <>
@@ -409,7 +409,7 @@ export default function InviteCodesPage() {
                       <button
                         onClick={() => deleteInviteCode(invite.id)}
                         disabled={deletingInviteCode === invite.id}
-                        className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full disabled:opacity-50 transition-colors"
+                        className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full disabled:opacity-50 transition-all duration-300 hover:scale-110"
                         title="删除邀请码"
                       >
                         <Trash2 className="w-5 h-5" />
@@ -418,13 +418,13 @@ export default function InviteCodesPage() {
 
                     {/* 大号邀请码显示 */}
                     <div className="text-center mb-3">
-                      <div className="inline-flex items-center bg-white border-2 border-blue-200 rounded-lg p-2 shadow-sm">
-                        <code className="text-2xl font-mono font-bold text-blue-800 tracking-wider">
+                      <div className="inline-flex items-center bg-white border-2 border-pink-200 rounded-xl p-3 shadow-lg">
+                        <code className="text-2xl font-mono font-bold text-pink-800 tracking-wider">
                           {invite.code}
                         </code>
                         <button
                           onClick={() => copyInviteCode(invite.code)}
-                          className="ml-4 p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-full transition-colors"
+                          className="ml-4 p-2 text-pink-600 hover:text-pink-800 hover:bg-pink-50 rounded-full transition-all duration-300 hover:scale-110"
                           title="复制邀请码"
                         >
                           {copiedCode === invite.code ? (
@@ -445,7 +445,7 @@ export default function InviteCodesPage() {
                           {(invite.courses || []).map((courseRelation) => {
                             const course = courseRelation.course || courseRelation;
                             return (
-                              <span key={course.id} className="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                              <span key={course.id} className="inline-block bg-gradient-to-r from-pink-100 to-purple-100 text-pink-800 px-3 py-2 rounded-full text-sm font-medium shadow-sm">
                                 {course.title}
                               </span>
                             );
