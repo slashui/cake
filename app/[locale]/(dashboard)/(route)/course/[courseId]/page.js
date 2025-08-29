@@ -43,20 +43,26 @@ export default function CourseOverviewPage({ params }) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-pink-50 to-purple-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600 mx-auto"></div>
+          <p className="mt-4 text-pink-700 font-medium">课程加载中...</p>
+        </div>
       </div>
     )
   }
 
   if (!courseData) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
-        <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center border border-gray-200">
-          <h2 className="text-2xl font-bold mb-4 text-gray-900">课程未找到</h2>
-          <p className="mb-6 text-gray-600">无法找到指定的课程内容。</p>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-pink-50 to-purple-50">
+        <div className="bg-white rounded-3xl shadow-2xl p-12 max-w-lg w-full mx-4 text-center border border-pink-200">
+          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-r from-pink-100 to-purple-100 flex items-center justify-center">
+            <span className="text-4xl">📚</span>
+          </div>
+          <h2 className="text-3xl font-bold mb-4 text-gray-900">课程未找到</h2>
+          <p className="mb-8 text-gray-600 text-lg leading-relaxed">无法找到指定的课程内容。</p>
           <button
-            className="bg-[#5d31ff] hover:bg-[#4a28d9] text-white px-6 py-2 rounded-full font-bold transition-colors"
+            className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white px-8 py-3 rounded-full font-bold transition-all duration-300 shadow-lg hover:shadow-xl"
             onClick={() => router.push(`/${locale}/dashboard`)}
           >
             返回首页
@@ -68,16 +74,54 @@ export default function CourseOverviewPage({ params }) {
 
   // 如果没有章节，显示课程概览
   return (
-    <div className="max-w-4xl mx-auto py-8 px-4">
-      <div className="bg-white rounded-lg shadow-lg p-8">
-        <h1 className="text-3xl font-bold mb-4">{courseData.title}</h1>
-        <p className="text-gray-600 mb-6">{courseData.description}</p>
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 flex items-center justify-center px-4">
+      <div className="max-w-2xl w-full">
+        {/* 主要内容卡片 */}
+        <div className="bg-white rounded-3xl shadow-2xl p-12 text-center border border-pink-200">
+          {/* 装饰性图标 */}
+          <div className="w-24 h-24 mx-auto mb-8 rounded-full bg-gradient-to-r from-pink-200 to-purple-200 flex items-center justify-center">
+            <span className="text-5xl">🚧</span>
+          </div>
+          
+          {/* 课程标题 */}
+          <h1 className="text-4xl font-bold mb-6 text-gray-900">{courseData.title}</h1>
+          <p className="text-xl text-gray-600 mb-8 leading-relaxed">{courseData.description}</p>
+          
+          {/* 开发中提示 */}
+          <div className="bg-gradient-to-r from-orange-50 to-yellow-50 border border-orange-200 rounded-2xl p-8 mb-8">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-r from-orange-200 to-yellow-200 flex items-center justify-center">
+              <span className="text-2xl">⏳</span>
+            </div>
+            <h2 className="text-2xl font-semibold text-orange-800 mb-4">课程开发中</h2>
+            <p className="text-orange-700 text-lg leading-relaxed">
+              此课程暂无内容，请联系管理员添加章节和课时。
+            </p>
+          </div>
+          
+          {/* 操作按钮 */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <button
+              className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white px-8 py-3 rounded-full font-bold transition-all duration-300 shadow-lg hover:shadow-xl"
+              onClick={() => router.push(`/${locale}/dashboard`)}
+            >
+              返回课程中心
+            </button>
+            <button
+              className="bg-white border-2 border-pink-300 text-pink-700 hover:bg-gradient-to-r hover:from-pink-50 hover:to-purple-50 px-8 py-3 rounded-full font-bold transition-all duration-300"
+              onClick={() => window.location.href = 'mailto:admin@example.com'}
+            >
+              联系管理员
+            </button>
+          </div>
+        </div>
         
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <h2 className="text-lg font-semibold text-yellow-800 mb-2">课程开发中</h2>
-          <p className="text-yellow-700">
-            此课程暂无内容，请联系管理员添加章节和课时。
-          </p>
+        {/* 底部装饰 */}
+        <div className="mt-8 text-center">
+          <div className="flex justify-center space-x-4">
+            <div className="w-3 h-3 rounded-full bg-pink-300 opacity-60"></div>
+            <div className="w-3 h-3 rounded-full bg-purple-300 opacity-60"></div>
+            <div className="w-3 h-3 rounded-full bg-pink-300 opacity-60"></div>
+          </div>
         </div>
       </div>
     </div>

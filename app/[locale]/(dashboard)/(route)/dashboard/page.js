@@ -1,7 +1,7 @@
 'use client'
 import Image from 'next/image'
 import { useTranslations } from "next-intl";
-import { useSession } from 'next-auth/react'
+import { useSession, signOut } from 'next-auth/react'
 import Link from 'next/link'
 import CourseList from '@/components/CourseList';
 import { useEffect, useState } from 'react'
@@ -122,27 +122,25 @@ export default function Home({ params }) {
               </p>
             </div>
 
-            {/* Right column - Course Stats */}
+            {/* Right column - User Info */}
             <div className="md:w-1/3 w-full">
               <div className="rounded-xl p-6" style={{ backgroundColor: "rgba(255,255,255,0.15)" }}>
-                <h2 className="text-xl font-bold mb-3">学习统计</h2>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span>已授权课程</span>
-                    <span className="font-semibold">{authorizedCourses.length}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>学习进度</span>
-                    <span className="font-semibold">开始探索</span>
+                <h2 className="text-xl font-bold mb-3">用户信息</h2>
+                <div className="space-y-3">
+                  <div className="text-sm">
+                    <span className="opacity-90">当前用户:</span>
+                    <div className="font-semibold mt-1 text-white bg-white/10 px-3 py-2 rounded-lg">
+                      {session?.user?.email || 'user@example.com'}
+                    </div>
                   </div>
                 </div>
-                {authorizedCourses.length > 0 && (
-                  <Link href={`/${lang}/course/${authorizedCourses[0].course.courseId}`} 
-                     className="inline-block mt-4 px-4 py-2 bg-white rounded-full font-medium hover:opacity-90 transition-opacity" 
-                     style={{ color: "#7BA05B" }}>
-                    继续学习
-                  </Link>
-                )}
+                <button
+                  onClick={() => signOut({ callbackUrl: `/${lang}/login` })}
+                  className="w-full mt-4 px-4 py-2 bg-white rounded-full font-medium hover:opacity-90 transition-opacity"
+                  style={{ color: "#7BA05B" }}
+                >
+                  退出登录
+                </button>
               </div>
             </div>
           </div>
