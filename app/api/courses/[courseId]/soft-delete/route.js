@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '../../../../../libs/prismadb.jsx';
 
 // 删除课程、章节或课时（硬删除，因为数据在数据库中）
-export async function DELETE(request, { params }) {
+async function handleDelete(request, { params }) {
   try {
     const { courseId } = params;
     const data = await request.json();
@@ -89,4 +89,14 @@ export async function DELETE(request, { params }) {
       { status: 500 }
     );
   }
+}
+
+// 支持PUT方法（向后兼容）
+export async function PUT(request, { params }) {
+  return handleDelete(request, { params });
+}
+
+// 支持DELETE方法
+export async function DELETE(request, { params }) {
+  return handleDelete(request, { params });
 }
