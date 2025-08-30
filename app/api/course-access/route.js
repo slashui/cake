@@ -1,8 +1,51 @@
 import { NextResponse } from 'next/server';
 import prisma from '../../../libs/prismadb.jsx';
-import { getCourseStructure, getCourseMetadata } from '../../../libs/courseFileSystem';
 
-// 检查用户对课程的访问权限（简化版）
+/**
+ * 从数据库构建课程结构
+ */
+async function build_course_structure_from_db(course_id) {
+  const course = await prisma.course.findUnique({
+    where: { courseId: course_id },
+    include: {
+      chapters: {
+        orderBy: { order: 'asc' },
+        include: {
+          lessons: {
+            orderBy: { order: 'asc' }
+          }
+        }
+      }
+    }
+  });
+
+  if (!course) {
+    return null;
+  }
+
+  return {
+    courseId: course.courseId,
+    chapters: course.chapters.map(chapter => ({
+      chapterNumber: chapter.chapterNumber,
+      title: chapter.title,
+      description: chapter.description,
+      lessons: chapter.lessons.map(lesson => ({
+        lessonNumber: lesson.lessonNumber,
+        title: lesson.title,
+        duration: lesson.duration,
+        videoUrl: lesson.videoUrl,
+        streamId: lesson.streamId,
+        thumbnail: lesson.thumbnail,
+        materials: lesson.materials || [],
+        isPreview: lesson.isPreview,
+        requiredRole: lesson.requiredRole,
+        url: `/course/${course_id}/${chapter.chapterNumber}/${lesson.lessonNumber}`
+      }))
+    }))
+  };
+}
+
+// 检查用户对课程的访问权限
 export async function POST(request) {
   try {
     const { userId, courseId } = await request.json();
@@ -38,16 +81,14 @@ export async function POST(request) {
     
     const hasAccess = !!userCourse;
     
-    // 如果有访问权限，获取文件系统结构
+    // 如果有访问权限，获取数据库结构
     let courseStructure = null;
-    let courseMetadata = null;
     
     if (hasAccess) {
       try {
-        courseStructure = await getCourseStructure(courseId);
-        courseMetadata = await getCourseMetadata(courseId);
-      } catch (fsError) {
-        console.warn('Failed to load course structure:', fsError.message);
+        courseStructure = await build_course_structure_from_db(courseId);
+      } catch (dbError) {
+        console.warn('Failed to load course structure from database:', dbError.message);
       }
     }
     
@@ -55,7 +96,7 @@ export async function POST(request) {
       hasAccess,
       course: hasAccess ? course : null,
       courseStructure,
-      courseMetadata,
+      courseMetadata: course.metadata,
       userCourse: userCourse || null,
       grantedAt: userCourse?.grantedAt || null
     });

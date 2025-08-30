@@ -1,13 +1,56 @@
 import { NextResponse } from 'next/server';
 import prisma from '../../../libs/prismadb.jsx';
-import { getCourseStructure, getCourseMetadata } from '../../../libs/courseFileSystem';
 
+
+/**
+ * 从数据库构建课程结构
+ */
+async function build_course_structure_from_db(course_id) {
+  const course = await prisma.course.findUnique({
+    where: { courseId: course_id },
+    include: {
+      chapters: {
+        orderBy: { order: 'asc' },
+        include: {
+          lessons: {
+            orderBy: { order: 'asc' }
+          }
+        }
+      }
+    }
+  });
+
+  if (!course) {
+    return null;
+  }
+
+  return {
+    courseId: course.courseId,
+    chapters: course.chapters.map(chapter => ({
+      chapterNumber: chapter.chapterNumber,
+      title: chapter.title,
+      description: chapter.description,
+      lessons: chapter.lessons.map(lesson => ({
+        lessonNumber: lesson.lessonNumber,
+        title: lesson.title,
+        duration: lesson.duration,
+        videoUrl: lesson.videoUrl,
+        streamId: lesson.streamId,
+        thumbnail: lesson.thumbnail,
+        materials: lesson.materials || [],
+        isPreview: lesson.isPreview,
+        requiredRole: lesson.requiredRole,
+        url: `/course/${course_id}/${chapter.chapterNumber}/${lesson.lessonNumber}`
+      }))
+    }))
+  };
+}
 
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const courseId = searchParams.get('courseId');
-    const includeFSStructure = searchParams.get('includeStructure') === 'true';
+    const includeStructure = searchParams.get('includeStructure') === 'true';
     
     if (courseId) {
       // 获取特定课程
@@ -35,23 +78,21 @@ export async function GET(request) {
         );
       }
       
-      // 如果需要文件系统结构，则获取
+      // 如果需要课程结构，从数据库获取
       let structure = null;
-      let metadata = null;
       
-      if (includeFSStructure) {
+      if (includeStructure) {
         try {
-          structure = await getCourseStructure(course.courseId);
-          metadata = await getCourseMetadata(course.courseId);
-        } catch (fsError) {
-          console.warn('Failed to load file system structure:', fsError.message);
+          structure = await build_course_structure_from_db(course.courseId);
+        } catch (dbError) {
+          console.warn('Failed to load course structure from database:', dbError.message);
         }
       }
       
       return NextResponse.json({
         ...course,
         fileSystemStructure: structure,
-        metadata: metadata
+        metadata: course.metadata
       });
     } else {
       // 获取所有课程
@@ -59,23 +100,16 @@ export async function GET(request) {
         orderBy: { createdAt: 'desc' }
       });
       
-      // 为每个课程获取文件系统结构（可选）
-      if (includeFSStructure) {
+      // 为每个课程获取结构（如果需要）
+      if (includeStructure) {
         const coursesWithStructure = await Promise.all(
           courses.map(async (course) => {
             try {
-              const structure = await getCourseStructure(course.courseId);
-              const metadata = await getCourseMetadata(course.courseId);
-              
-              // 过滤掉已软删除的课程
-              if (metadata.deleted) {
-                return null;
-              }
+              const structure = await build_course_structure_from_db(course.courseId);
               
               return {
                 ...course,
-                fileSystemStructure: structure,
-                metadata: metadata
+                fileSystemStructure: structure
               };
             } catch (error) {
               console.warn(`Failed to load structure for course ${course.courseId}:`, error.message);
@@ -84,9 +118,7 @@ export async function GET(request) {
           })
         );
         
-        // 过滤掉 null 值（已删除的课程）
-        const filteredCourses = coursesWithStructure.filter(course => course !== null);
-        return NextResponse.json(filteredCourses);
+        return NextResponse.json(coursesWithStructure);
       }
       
       return NextResponse.json(courses);
@@ -125,7 +157,7 @@ export async function POST(request) {
       );
     }
     
-    // 创建数据库记录
+    // 创建数据库记录（不再依赖文件系统）
     const course = await prisma.course.create({
       data: {
         courseId,
@@ -135,25 +167,25 @@ export async function POST(request) {
         price: price ? parseFloat(price) : null,
         status,
         category,
+        metadata: {
+          createdVia: 'database',
+          createdAt: new Date().toISOString()
+        }
       }
     });
     
-    // 创建文件系统结构
-    try {
-      const { createCourseDirectory } = await import('../../../libs/courseFileSystem');
-      await createCourseDirectory(courseId, {
-        title,
-        description,
-        thumbnail,
-        price,
-        category,
-        status
-      });
-    } catch (fsError) {
-      // 如果文件系统创建失败，回滚数据库操作
-      await prisma.course.delete({ where: { id: course.id } });
-      throw new Error(`Failed to create course directory: ${fsError.message}`);
-    }
+    // 创建默认第一章
+    await prisma.chapter.create({
+      data: {
+        courseId: course.id,
+        chapterNumber: 'chapter1',
+        title: '第一章',
+        description: '',
+        order: 1,
+        status: 'DRAFT',
+        requiredRole: 'FREE'
+      }
+    });
     
     return NextResponse.json(course, { status: 201 });
   } catch (error) {
@@ -180,16 +212,11 @@ export async function PUT(request) {
     // 更新数据库记录
     const course = await prisma.course.update({
       where: { courseId },
-      data: updateData
+      data: {
+        ...updateData,
+        updatedAt: new Date()
+      }
     });
-    
-    // 同步更新文件系统metadata
-    try {
-      const { updateCourseMetadata } = await import('../../../libs/courseFileSystem');
-      await updateCourseMetadata(courseId, updateData);
-    } catch (fsError) {
-      console.warn('Failed to update file system metadata:', fsError.message);
-    }
     
     return NextResponse.json(course);
   } catch (error) {
@@ -213,18 +240,10 @@ export async function DELETE(request) {
       );
     }
     
-    // 删除数据库记录（会级联删除用户授权）
+    // 删除数据库记录（会级联删除章节、课时、用户授权）
     await prisma.course.delete({
       where: { courseId }
     });
-    
-    // 删除文件系统目录
-    try {
-      const { deleteCourseDirectory } = await import('../../../libs/courseFileSystem');
-      await deleteCourseDirectory(courseId);
-    } catch (fsError) {
-      console.warn('Failed to delete course directory:', fsError.message);
-    }
     
     return NextResponse.json({ message: 'Course deleted successfully' });
   } catch (error) {

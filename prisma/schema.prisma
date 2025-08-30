@@ -76,8 +76,10 @@ model Course {
   price             Float?
   status            CourseStatus       @default(DRAFT)
   thumbnail         String?
+  metadata          Json?              // 存储额外的课程元数据
   inviteCodeCourses InviteCodeCourse[]
   userCourses       UserCourse[]
+  chapters          Chapter[]          // 关联章节
 }
 
 model UserCourse {
@@ -126,6 +128,44 @@ enum CourseStatus {
   DRAFT
   PUBLISHED
   ARCHIVED
+}
+
+model Chapter {
+  id            String     @id @default(cuid())
+  courseId      String
+  chapterNumber String     // chapter1, chapter2 等
+  title         String     // 显示名称
+  description   String?
+  order         Int        // 章节排序
+  status        CourseStatus @default(DRAFT)
+  requiredRole  UserRole   @default(FREE)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  course        Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons       Lesson[]   // 关联课时
+
+  @@unique([courseId, chapterNumber])
+}
+
+model Lesson {
+  id            String     @id @default(cuid())
+  chapterId     String
+  lessonNumber  String     // lesson1, lesson2 等
+  title         String     // 显示名称
+  duration      String?    // 时长，如"30分钟"
+  order         Int        // 课时排序
+  content       String?    // MDX内容
+  videoUrl      String?    // 视频链接
+  streamId      String?    // 流媒体ID
+  thumbnail     String?    // 缩略图
+  materials     Json?      // 课程资料 JSON数组
+  isPreview     Boolean    @default(false) // 是否可预览
+  requiredRole  UserRole   @default(FREE)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  chapter       Chapter    @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+
+  @@unique([chapterId, lessonNumber])
 }
 
 enum InviteCodeStatus {
